@@ -9,6 +9,17 @@
 #include <stdint.h>
 #include "tm4c123gh6pm.h"   // put tm4c123gh6pm.h in your project folder or change this line
 
+/****************************************************
+ *                                                  *
+ *                  Initializers                    *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * PN532_SSI_Init
+ * ----------
+ * Discription: initialize SSI communication for PN532 Module. 
+ */
 void PN532_SSI_Init(void) {
     /* SSI and Port A Activation */
     SYSCTL_RCGCSSI_R |= SYSCTL_RCGCSSI_R0;                 // enable SSI Module 0 clock
@@ -39,12 +50,84 @@ void PN532_SSI_Init(void) {
     SSI0_CR0_R &= ~SSI_CR0_FRF_M;                          // clear bit fields for SSI0 Frame Format Select
     SSI0_CR0_R |= SSI_CR0_FRF_MOTO;                        // set frame format to Freescale SPI Frame Format
     SSI0_CR0_R &= ~SSI_CR0_DSS_M;                          // clear bit fields for SSI0 Data Size Select
-    SSI0_CR0_R |= SSI_CR0_DSS_8;                          // set SSI data size to 16
+    SSI0_CR0_R |= SSI_CR0_DSS_8;                           // set SSI data size to 16
     SSI0_CR1_R |= SSI_CR1_SSE;                             // enable SSI operation
 }
 
-void PN532_Write(uint8_t data) {
+
+/****************************************************
+ *                                                  *
+ *                Generic Functions                 *
+ *                                                  *
+ ****************************************************/
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************
+ *                                                  *
+ *               ISO14443A Functions                *
+ *                                                  *
+ ****************************************************/
+
+
+
+
+
+
+
+
+
+/****************************************************
+ *                                                  *
+ *             Mifare Classic functions             *
+ *                                                  *
+ ****************************************************/
+
+
+
+
+
+
+
+
+
+
+/****************************************************
+ *                                                  *
+ *               Low Level Functions                *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * PN532_SSI_Read
+ * ----------
+ * Return: byte of date read from PN532 module.
+ * ----------
+ * Discription: read one byte of data fromcPN532 module. 
+ */
+static uint8_t PN532_SSI_Read(void) {
+    return SSI0_DR_R;
+} 
+    
+
+/**
+ * PN532_SSI_Write
+ * ----------
+ * Parameters:
+ *   - byte: byte of data to be written.
+ * ----------
+ * Discription: write one byte of data to PN532 module. 
+ */
+void PN532_SSI_Write(uint8_t byte) {
     while((SSI0_SR_R&SSI_SR_TNF)==0){};                    // wait until transmit FIFO not full
-    SSI0_DR_R = data;                                      // write data
+    SSI0_DR_R = byte;                                      // write data
 }
 

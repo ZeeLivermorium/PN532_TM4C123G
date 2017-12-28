@@ -1,4 +1,5 @@
-/* PN532_TM4C123_SSI.h
+/*
+ * PN532_TM4C123.h
  * ----------
  * Adapted from Adafruit_PN532.h written by Adafruit Industries.
  * ----------
@@ -126,16 +127,162 @@
 #define PN532_GPIO_P34                      (4)
 #define PN532_GPIO_P35                      (5)
 
-// SSI initializer
-void PN532_SSI_Init();
+/****************************************************
+ *                                                  *
+ *                  Initializers                    *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * PN532_SSI_Init
+ * ----------
+ * Discription: initialize SSI communication for PN532 Module. 
+ */
+void PN532_SSI_Init(void);
+
+/**
+ * PN532_I2C_Init
+ * ----------
+ * Discription: initialize I2C communication for PN532 Module. 
+ */
+// void PN532_I2C_Init(void);
+
+/**
+ * PN532_UART_Init
+ * ----------
+ * Discription: initialize UART communication for PN532 Module. 
+ */
+// void PN532_UART_Init(void);
 
 
+/****************************************************
+ *                                                  *
+ *                Generic Functions                 *
+ *                                                  *
+ ****************************************************/
+
+/**
+ *
+ *
+ *
+ */
+bool SAMConfig(void);
+
+/**
+ *
+ *
+ *
+ *
+ */
+uint32_t getFirmwareVersion(void);
 
 
+/*
+ *
+ *
+ *
+ *
+ */
+bool sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen, uint16_t timeout = 1000);  
 
 
+/**
+ *
+ *
+ *
+ */
+bool writeGPIO(uint8_t pinstate);
+
+/**
+ *
+ *
+ *
+ *
+ */
+uint8_t readGPIO(void);
+
+/**
+ *
+ *
+ *
+ *
+ */
+bool setPassiveActivationRetries(uint8_t maxRetries);
+  
+
+/****************************************************
+ *                                                  *
+ *               ISO14443A Functions                *
+ *                                                  *
+ ****************************************************/
+
+/**
+ *
+ *
+ *
+ *
+ */
+bool readPassiveTargetID(uint8_t cardbaudrate, uint8_t * uid, uint8_t * uidLength, uint16_t timeout = 0);
+
+/**
+ *
+ *
+ *
+ *
+ */
+bool inDataExchange(uint8_t * send, uint8_t sendLength, uint8_t * response, uint8_t * responseLength);
+
+/**
+ *
+ *
+ *
+ *
+ */
+bool inListPassiveTarget();
 
 
+/****************************************************
+ *                                                  *
+ *             Mifare Classic functions             *
+ *                                                  *
+ ****************************************************/
+
+
+/****************************************************
+ *                                                  *
+ *               Low Level Functions                *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * PN532_Write_Command
+ * ----------
+ * Parameters:
+ *   - cmd: pointers to command to be passed to PN532 module.
+ *   - cmd_length: length of the command array.
+ * ----------
+ * Discription: Write Command to PN532 module.
+ */
+void PN532_Write_Command(uint8_t* cmd, uint8_t cmd_length);
+
+/**
+ * PN532_SSI_Read
+ * ----------
+ * Return: byte of date read from PN532 module.
+ * ----------
+ * Discription: read one byte of data fromcPN532 module. 
+ */
+static uint8_t PN532_SSI_Read(void);
+
+/**
+ * PN532_SSI_Write
+ * ----------
+ * Parameters:
+ *   - byte: byte of data to be written.
+ * ----------
+ * Discription: write one byte of data to PN532 module. 
+ */
+static void PN532_SSI_Write(uint8_t byte);
 
 #endif
 
