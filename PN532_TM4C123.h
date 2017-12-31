@@ -174,7 +174,7 @@ bool SAMConfig(void);
  *
  *
  */
-uint32_t getFirmwareVersion(void);
+uint32_t PN532_Firmware_Version(void);
 
 
 /*
@@ -183,7 +183,7 @@ uint32_t getFirmwareVersion(void);
  *
  *
  */
-bool sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen, uint16_t timeout = 1000);  
+bool PN532_Write_Command(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time = 1000);
 
 
 /**
@@ -263,7 +263,7 @@ bool inListPassiveTarget();
  * ----------
  * Discription: Write Command to PN532 module.
  */
-void PN532_Write_Command(uint8_t* cmd, uint8_t cmd_length);
+static void Write_Command(uint8_t* cmd, uint8_t cmd_length);
 
 /**
  * PN532_SSI_Read
@@ -272,7 +272,7 @@ void PN532_Write_Command(uint8_t* cmd, uint8_t cmd_length);
  * ----------
  * Discription: read one byte of data fromcPN532 module. 
  */
-static uint8_t PN532_SSI_Read(void);
+static uint8_t SSI_Read(void);
 
 /**
  * PN532_SSI_Write
@@ -282,7 +282,7 @@ static uint8_t PN532_SSI_Read(void);
  * ----------
  * Discription: write one byte of data to PN532 module. 
  */
-static void PN532_SSI_Write(uint8_t byte);
+static void SSI_Write(uint8_t byte);
 
 #endif
 

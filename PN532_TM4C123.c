@@ -1,5 +1,5 @@
 /*
- * PN532_TM4C123_SSI.c
+ * PN532_TM4C123.c
  * PN532 Driver for TM4C123 Microcontroller, using SSI
  * ----------
  * Zee Livermorium
@@ -61,12 +61,23 @@ void PN532_SSI_Init(void) {
  *                                                  *
  ****************************************************/
 
+/* 
+ *
+ */
+uint32_t PN532_Firmware_Version(void) {
 
+}
 
-
-
-
-
+/*
+ *
+ *
+ */
+bool PN532_Write_Command(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
+    
+    
+    
+    
+}
 
 
 
@@ -102,9 +113,26 @@ void PN532_SSI_Init(void) {
 
 /****************************************************
  *                                                  *
- *               Low Level Functions                *
+ *                Internal Functions                *
  *                                                  *
  ****************************************************/
+
+bool PN532_ACK() {
+    
+}
+
+
+
+bool Ready_For_Response(uint16_t wait_time) {
+    uint8_t byte;
+    for (uint16_t timer = 0; timer < wait_time; timer += 10) {
+        SSI_Write(PN532_SPI_STATREAD);
+        byte = SSI_Read();
+        if (byte == PN532_SSI_READY) return true;
+        // delay 10
+    }
+    return false;
+}
 
 /**
  * PN532_SSI_Read
@@ -113,7 +141,10 @@ void PN532_SSI_Init(void) {
  * ----------
  * Discription: read one byte of data fromcPN532 module. 
  */
-static uint8_t PN532_SSI_Read(void) {
+static uint8_t SSI_Read(void) {
+    uint8_t byte = 0;
+    // check status register
+    byte += SSI0_DR_R & 0xFF;
     return SSI0_DR_R;
 } 
     
@@ -126,8 +157,8 @@ static uint8_t PN532_SSI_Read(void) {
  * ----------
  * Discription: write one byte of data to PN532 module. 
  */
-void PN532_SSI_Write(uint8_t byte) {
-    while((SSI0_SR_R&SSI_SR_TNF)==0){};                    // wait until transmit FIFO not full
-    SSI0_DR_R = byte;                                      // write data
+static void SSI_Write(uint8_t byte) {
+    while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};       // wait until SSI0 not busy/transmit FIFO empty
+    SSI0_DR_R = byte;                                        // write data
 }
 
