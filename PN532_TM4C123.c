@@ -1,13 +1,18 @@
 /*
  * PN532_TM4C123.c
- * PN532 Driver for TM4C123 Microcontroller, using SSI
+ * PN532 Driver for TM4C123 Microcontroller
+ * ----------
+ * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * Zee Livermorium
  * Dec 25, 2017
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "tm4c123gh6pm.h"   // put tm4c123gh6pm.h in your project folder or change this line
+
+char ACK_Frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};   // see NXP PN532 data sheet page 30
 
 /****************************************************
  *                                                  *
@@ -65,19 +70,9 @@ void PN532_SSI_Init(void) {
  *
  */
 uint32_t PN532_Firmware_Version(void) {
-
+    uint32_t
 }
 
-/*
- *
- *
- */
-bool PN532_Write_Command(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
-    
-    
-    
-    
-}
 
 
 
@@ -116,23 +111,91 @@ bool PN532_Write_Command(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
  *                Internal Functions                *
  *                                                  *
  ****************************************************/
-
+/**
+ * PN532_ACK
+ * ----------
+ */
 bool PN532_ACK() {
-    
+    uint8_t ACK_buffer[6];                                           // buffer for ACK signal
+    read_data(ACK_buffer, 6);                                        // read ACK signal
+    return 0 == strncmp((char *)ACK_Frame, (char *)ACK_buffer, 6);
 }
 
 
+/**
+ * is_ready_for_response
+ * ----------
+ */
+static bool is_ready_for_response(void) {
+    uint8_t byte;                                               // one byte of data to read
+    SSI_write(PN532_SPI_STATREAD);                              // write SPI starting command to PN532 module
+    byte = SSI_Read();                                          // read response from PN532
+    if (byte == PN532_SPI_READY) return true;                   // if recieve ready response, return true
+    return false;                                               // not ready return false
+}
 
-bool Ready_For_Response(uint16_t wait_time) {
-    uint8_t byte;
-    for (uint16_t timer = 0; timer < wait_time; timer += 10) {
-        SSI_Write(PN532_SPI_STATREAD);
-        byte = SSI_Read();
-        if (byte == PN532_SSI_READY) return true;
-        // delay 10
+/**
+ * wait_to_be_ready_for_response
+ * ----------
+ */
+bool wait_to_be_ready_for_response(uint16_t wait_time) {
+    for (uint16_t timer = 0; timer < wait_time; timer += 10) {  // count up to wait time
+        if (is_ready_for_response()) return true;               // if ready, return true
+        // delay 10                                             // delay before retry
     }
-    return false;
+    return false;                                               // time out, return false
 }
+
+
+
+
+
+/**
+ *
+ * data sheet page 28
+ */
+bool write_command(uint8_t *cmd, uint8_t cmd_length) {
+    
+    uint8_t DCS;                                         // Data checksum, see datasheet how it is used
+    
+    SSI_write(PN532_SPI_DATAWRITE);                      //
+    SSI_write(PN532_PREAMBLE);                           // write PREAMBLE
+    SSI_write(PN532_STARTCODE1);                         // write first byte of START CODE
+    SSI_write(PN532_STARTCODE2);                         // write second byte of START CODE
+    SSI_write(cmd_length);                               // write command length to LEN
+    SSI_write(~cmd_length + 1);                          // write the 2's complement of command length to LCS
+    SSI_write(PN532_HOSTTOPN532);                        // a frame from the host controller to the PN532
+    
+    // according to datasheet the following line is wrong, but adafruit code has equivalent code
+    // DCS = PN532_PREAMBLE + PN532_STARTCODE1 + PN532_STARTCODE2 + PN532_HOSTTOPN532;
+    
+    DCS = PN532_HOSTTOPN532;
+    for (uint8_t i = 0; i < cmd_length; i++) {
+        SSI_write(cmd[i]);                               // write data
+        DCS += cmd[i];
+    }
+    
+    SSI_write(~DCS + 1);                                 // write 2's complement of DCS
+    SSI_write(PN532_POSTAMBLE);                          // write POSTAMBLE
+}
+
+
+
+
+/**
+ * read_data
+ * ----------
+ *
+ *
+ */
+void read_data(uint8_t *data_buff, uint8_t data_length) {
+    SSI_write(PN532_SPI_DATAREAD);
+    for (uint8_t i = 0; i < data_length; i++) {
+        // delay 1
+        data_buff[i] = SSI_Read();
+    }
+}
+
 
 /**
  * PN532_SSI_Read
@@ -141,23 +204,20 @@ bool Ready_For_Response(uint16_t wait_time) {
  * ----------
  * Discription: read one byte of data fromcPN532 module. 
  */
-static uint8_t SSI_Read(void) {
-    uint8_t byte = 0;
-    // check status register
-    byte += SSI0_DR_R & 0xFF;
-    return SSI0_DR_R;
+static uint8_t SSI_read(void) {
+    return SSI0_DR_R & 0xFF;
 } 
     
 
 /**
- * PN532_SSI_Write
+ * PN532_SSI_write
  * ----------
  * Parameters:
  *   - byte: byte of data to be written.
  * ----------
- * Discription: write one byte of data to PN532 module. 
+ * Discription: write one byte of data to PN532 module.
  */
-static void SSI_Write(uint8_t byte) {
+static void SSI_write(uint8_t byte) {
     while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};       // wait until SSI0 not busy/transmit FIFO empty
     SSI0_DR_R = byte;                                        // write data
 }
