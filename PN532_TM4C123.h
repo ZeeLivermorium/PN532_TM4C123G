@@ -136,21 +136,21 @@
 /**
  * PN532_SSI_Init
  * ----------
- * Discription: initialize SSI communication for PN532 Module. 
+ * Discription: initialize SSI communication for PN532 Module.
  */
 void PN532_SSI_Init(void);
 
 /**
  * PN532_I2C_Init
  * ----------
- * Discription: initialize I2C communication for PN532 Module. 
+ * Discription: initialize I2C communication for PN532 Module.
  */
 // void PN532_I2C_Init(void);
 
 /**
  * PN532_UART_Init
  * ----------
- * Discription: initialize UART communication for PN532 Module. 
+ * Discription: initialize UART communication for PN532 Module.
  */
 // void PN532_UART_Init(void);
 
@@ -166,7 +166,7 @@ void PN532_SSI_Init(void);
  *
  *
  */
-bool SAMConfig(void);
+int SAMConfig(void);
 
 /**
  *
@@ -177,13 +177,6 @@ bool SAMConfig(void);
 uint32_t PN532_Firmware_Version(void);
 
 
-/*
- *
- *
- *
- *
- */
-bool PN532_Write_Command(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time = 1000);
 
 
 /**
@@ -191,7 +184,7 @@ bool PN532_Write_Command(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time = 
  *
  *
  */
-bool writeGPIO(uint8_t pinstate);
+int writeGPIO(uint8_t pinstate);
 
 /**
  *
@@ -207,8 +200,8 @@ uint8_t readGPIO(void);
  *
  *
  */
-bool setPassiveActivationRetries(uint8_t maxRetries);
-  
+int setPassiveActivationRetries(uint8_t maxRetries);
+
 
 /****************************************************
  *                                                  *
@@ -216,29 +209,6 @@ bool setPassiveActivationRetries(uint8_t maxRetries);
  *                                                  *
  ****************************************************/
 
-/**
- *
- *
- *
- *
- */
-bool readPassiveTargetID(uint8_t cardbaudrate, uint8_t * uid, uint8_t * uidLength, uint16_t timeout = 0);
-
-/**
- *
- *
- *
- *
- */
-bool inDataExchange(uint8_t * send, uint8_t sendLength, uint8_t * response, uint8_t * responseLength);
-
-/**
- *
- *
- *
- *
- */
-bool inListPassiveTarget();
 
 
 /****************************************************
@@ -254,6 +224,9 @@ bool inListPassiveTarget();
  *                                                  *
  ****************************************************/
 
+
+int write_command_ACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time);
+
 /**
  * PN532_Write_Command
  * ----------
@@ -263,16 +236,19 @@ bool inListPassiveTarget();
  * ----------
  * Discription: Write Command to PN532 module.
  */
-static void Write_Command(uint8_t* cmd, uint8_t cmd_length);
+static void write_command(uint8_t *cmd, uint8_t cmd_length);
+
+
+void read_data(uint8_t *data_buff, uint8_t data_length);
 
 /**
  * PN532_SSI_Read
  * ----------
  * Return: byte of date read from PN532 module.
  * ----------
- * Discription: read one byte of data fromcPN532 module. 
+ * Discription: read one byte of data fromcPN532 module.
  */
-static uint8_t SSI_Read(void);
+static uint8_t SSI_read(void);
 
 /**
  * PN532_SSI_Write
@@ -280,9 +256,9 @@ static uint8_t SSI_Read(void);
  * Parameters:
  *   - byte: byte of data to be written.
  * ----------
- * Discription: write one byte of data to PN532 module. 
+ * Discription: write one byte of data to PN532 module.
  */
-static void SSI_Write(uint8_t byte);
+static void SSI_write(uint8_t byte);
 
 #endif
 
