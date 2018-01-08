@@ -2,6 +2,8 @@
  * PN532_TM4C123.h
  * ----------
  * Adapted from Adafruit_PN532.h written by Adafruit Industries.
+ * You can find the Adafruit driver for Arduino here:
+ * https://github.com/adafruit/Adafruit-PN532.git
  * ----------
  * Zee Livermorium
  * Dec 25, 2017

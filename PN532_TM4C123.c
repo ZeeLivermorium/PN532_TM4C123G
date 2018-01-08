@@ -2,6 +2,9 @@
  * PN532_TM4C123.c
  * PN532 Driver for TM4C123 Microcontroller
  * ----------
+ * Adapted code from Adafruit PN532 driver for Arduino. You can find the Adafruit driver for Arduino here:
+ * https://github.com/adafruit/Adafruit-PN532.git
+ * ----------
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * Zee Livermorium
