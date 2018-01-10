@@ -1,16 +1,16 @@
 /*
- * PN532_TM4C123.h
+ * File: PN532_TM4C123.h
  * ----------
- * Adapted from Adafruit_PN532.h written by Adafruit Industries.
- * You can find the Adafruit driver for Arduino here:
- * https://github.com/adafruit/Adafruit-PN532.git
+ * Adapted code from elechouse PN532 driver for Arduino.
+ * You can find the elechouse PN532 driver here:
+ * https://github.com/elechouse/PN532.git
  * ----------
  * Zee Livermorium
  * Dec 25, 2017
  */
 
-#ifndef PN532_TM4C123_H
-#define PN532_TM4C123_H
+#ifndef __PN532_TM4C123_H__
+#define __PN532_TM4C123_H__
 
 #define PN532_PREAMBLE                      (0x00)
 #define PN532_STARTCODE1                    (0x00)
@@ -19,6 +19,19 @@
 
 #define PN532_HOSTTOPN532                   (0xD4)
 #define PN532_PN532TOHOST                   (0xD5)
+
+#define PN532_WAKEUP                        (0x55)
+
+#define PN532_SPI_STATREAD                  (0x02)
+#define PN532_SPI_DATAWRITE                 (0x01)
+#define PN532_SPI_DATAREAD                  (0x03)
+#define PN532_SPI_READY                     (0x01)
+
+#define PN532_I2C_ADDRESS                   (0x48 >> 1)
+#define PN532_I2C_READBIT                   (0x01)
+#define PN532_I2C_BUSY                      (0x00)
+#define PN532_I2C_READY                     (0x01)
+#define PN532_I2C_READYTIMEOUT              (20)
 
 // PN532 Commands
 #define PN532_COMMAND_DIAGNOSE              (0x00)
@@ -57,18 +70,6 @@
 #define PN532_RESPONSE_INDATAEXCHANGE       (0x41)
 #define PN532_RESPONSE_INLISTPASSIVETARGET  (0x4B)
 
-#define PN532_WAKEUP                        (0x55)
-
-#define PN532_SPI_STATREAD                  (0x02)
-#define PN532_SPI_DATAWRITE                 (0x01)
-#define PN532_SPI_DATAREAD                  (0x03)
-#define PN532_SPI_READY                     (0x01)
-
-#define PN532_I2C_ADDRESS                   (0x48 >> 1)
-#define PN532_I2C_READBIT                   (0x01)
-#define PN532_I2C_BUSY                      (0x00)
-#define PN532_I2C_READY                     (0x01)
-#define PN532_I2C_READYTIMEOUT              (20)
 
 #define PN532_MIFARE_ISO14443A              (0x00)
 
@@ -77,11 +78,19 @@
 #define MIFARE_CMD_AUTH_B                   (0x61)
 #define MIFARE_CMD_READ                     (0x30)
 #define MIFARE_CMD_WRITE                    (0xA0)
+#define MIFARE_CMD_WRITE_ULTRALIGHT         (0xA2)
 #define MIFARE_CMD_TRANSFER                 (0xB0)
 #define MIFARE_CMD_DECREMENT                (0xC0)
 #define MIFARE_CMD_INCREMENT                (0xC1)
 #define MIFARE_CMD_STORE                    (0xC2)
-#define MIFARE_ULTRALIGHT_CMD_WRITE         (0xA2)
+
+// FeliCa Commands
+#define FELICA_CMD_POLLING                  (0x00)
+#define FELICA_CMD_REQUEST_SERVICE          (0x02)
+#define FELICA_CMD_REQUEST_RESPONSE         (0x04)
+#define FELICA_CMD_READ_WITHOUT_ENCRYPTION  (0x06)
+#define FELICA_CMD_WRITE_WITHOUT_ENCRYPTION (0x08)
+#define FELICA_CMD_REQUEST_SYSTEM_CODE      (0x0C)
 
 // Prefixes for NDEF Records (to identify record type)
 #define NDEF_URIPREFIX_NONE                 (0x00)
@@ -129,95 +138,68 @@
 #define PN532_GPIO_P34                      (4)
 #define PN532_GPIO_P35                      (5)
 
+// FeliCa consts
+#define FELICA_READ_MAX_SERVICE_NUM         16
+#define FELICA_READ_MAX_BLOCK_NUM           12 // for typical FeliCa card
+#define FELICA_WRITE_MAX_SERVICE_NUM        16
+#define FELICA_WRITE_MAX_BLOCK_NUM          10 // for typical FeliCa card
+#define FELICA_REQ_SERVICE_MAX_NODE_NUM     32
+
 /****************************************************
  *                                                  *
  *                  Initializers                    *
  *                                                  *
  ****************************************************/
-
-/**
- * PN532_SSI_Init
- * ----------
- * Discription: initialize SSI communication for PN532 Module.
- */
 void PN532_SSI_Init(void);
 
-/**
- * PN532_I2C_Init
- * ----------
- * Discription: initialize I2C communication for PN532 Module.
- */
 // void PN532_I2C_Init(void);
 
-/**
- * PN532_UART_Init
- * ----------
- * Discription: initialize UART communication for PN532 Module.
- */
 // void PN532_UART_Init(void);
-
 
 /****************************************************
  *                                                  *
  *                Generic Functions                 *
  *                                                  *
  ****************************************************/
-
-/**
- *
- *
- *
- */
 int SAMConfig(void);
 
-/**
- *
- *
- *
- *
- */
-uint32_t PN532_Firmware_Version(void);
+uint32_t PN532_getFirmwareVersion(void);
 
-
-
-
-/**
- *
- *
- *
- */
 int writeGPIO(uint8_t pinstate);
 
-/**
- *
- *
- *
- *
- */
 uint8_t readGPIO(void);
 
-/**
- *
- *
- *
- *
- */
 int setPassiveActivationRetries(uint8_t maxRetries);
-
 
 /****************************************************
  *                                                  *
  *               ISO14443A Functions                *
  *                                                  *
  ****************************************************/
+int inListPassiveTarget();
 
+int readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length, uint16_t timeout);
 
-
+int inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
 /****************************************************
  *                                                  *
  *             Mifare Classic functions             *
  *                                                  *
  ****************************************************/
+int mifareclassic_IsFirstBlock (uint32_t uiBlock);
+
+int mifareclassic_IsTrailerBlock (uint32_t uiBlock);
+
+uint8_t mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, uint32_t blockNumber,
+                                         uint8_t keyNumber, uint8_t *keyData);
+
+uint8_t mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data);
+
+uint8_t mifareclassic_WriteDataBlock (uint8_t blockNumber, uint8_t *data);
+
+uint8_t mifareclassic_FormatNDEF (void);
+
+uint8_t mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url);
 
 
 /****************************************************
@@ -225,41 +207,14 @@ int setPassiveActivationRetries(uint8_t maxRetries);
  *               Low Level Functions                *
  *                                                  *
  ****************************************************/
+static int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time);
 
+static void writeCommand(uint8_t *cmd, uint8_t cmd_length);
 
-int write_command_ACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time);
+static void readData(uint8_t *data_buff, uint8_t data_length);
 
-/**
- * PN532_Write_Command
- * ----------
- * Parameters:
- *   - cmd: pointers to command to be passed to PN532 module.
- *   - cmd_length: length of the command array.
- * ----------
- * Discription: Write Command to PN532 module.
- */
-static void write_command(uint8_t *cmd, uint8_t cmd_length);
-
-
-void read_data(uint8_t *data_buff, uint8_t data_length);
-
-/**
- * PN532_SSI_Read
- * ----------
- * Return: byte of date read from PN532 module.
- * ----------
- * Discription: read one byte of data fromcPN532 module.
- */
 static uint8_t SSI_read(void);
 
-/**
- * PN532_SSI_Write
- * ----------
- * Parameters:
- *   - byte: byte of data to be written.
- * ----------
- * Discription: write one byte of data to PN532 module.
- */
 static void SSI_write(uint8_t byte);
 
 #endif

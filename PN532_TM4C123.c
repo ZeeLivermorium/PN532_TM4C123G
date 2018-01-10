@@ -1,9 +1,10 @@
 /*
- * PN532_TM4C123.c
- * PN532 Driver for TM4C123 Microcontroller
+ * File: PN532_TM4C123.c
+ * PN532 Driver for TM4C123 Microcontroller.
  * ----------
- * Adapted code from Adafruit PN532 driver for Arduino. You can find the Adafruit driver for Arduino here:
- * https://github.com/adafruit/Adafruit-PN532.git
+ * Adapted code from elechouse PN532 driver for Arduino.
+ * You can find the elechouse PN532 driver here:
+ * https://github.com/elechouse/PN532.git
  * ----------
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
@@ -16,27 +17,25 @@
 #include "PN532_TM4C123.h"
 #include "../inc/tm4c123gh6pm.h"   // put tm4c123gh6pm.h in your project folder or change this line
 
-char ACK_Frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};   // see NXP PN532 data sheet page 30
 uint8_t packet_buffer[64];
 
-static uint8_t reverse_bit_order(uint8_t byte) {
-    uint8_t reversed_byte = 0;
-    reversed_byte |= (byte & 0x01) << 7;
-    reversed_byte |= (byte & 0x02) << 5;
-    reversed_byte |= (byte & 0x04) << 3;
-    reversed_byte |= (byte & 0x08) << 1;
-    reversed_byte |= (byte & 0x10) >> 1;
-    reversed_byte |= (byte & 0x20) >> 3;
-    reversed_byte |= (byte & 0x40) >> 5;
-    reversed_byte |= (byte & 0x80) >> 7;
-    return reversed_byte;
+static void delay(uint32_t time) {
+    for(int t = time; t > 0; t--)                                // time msec
+        for(int ms = 72724*2/91; ms > 0; ms--);     // 1msec
 }
 
-void lol(void) {
-    SSI_write(PN532_SPI_STATREAD);                              // write SPI starting command to PN532 module
-    for (int i = 0; i < 8000; i++);
-    uint8_t byte = SSI_read();
-    if (byte == PN532_SPI_READY) GPIO_PORTF_DATA_R = 0x08;
+static uint8_t reverseBitOrder(uint8_t byte) {
+    /*
+     return ((byte & 0x01) << 7) +
+     ((byte & 0x02) << 5) +
+     ((byte & 0x04) << 3) +
+     ((byte & 0x08) << 1) +
+     ((byte & 0x10) >> 1) +
+     ((byte & 0x20) >> 3) +
+     ((byte & 0x40) >> 5) +
+     ((byte & 0x80) >> 7);
+     */
+    return ((byte & 0xF0) >> 4) + ((byte & 0x0F) << 4);
 }
 
 /****************************************************
@@ -72,9 +71,10 @@ void PN532_SSI_Init(void) {
     /* SSI0 Set Up */
     SSI0_CR1_R &= ~SSI_CR1_SSE;                            // disable SSI0 operation
     SSI0_CR1_R &= ~SSI_CR1_MS;                             // configure SSI0 as master mode
-    //SSI0_CC_R = (SSI0_CC_R&~SSI_CC_CS_M)+SSI_CC_CS_SYSPLL;
-    SSI0_CPSR_R &= ~SSI_CPSR_CPSDVSR_M;                     // clear bit fields for SSI Clock Prescale Divisor
-    SSI0_CPSR_R += 80;                                     // /80 clock divisor, must be even number in [0, 254]
+    SSI0_CC_R &= ~SSI_CC_CS_M;
+    SSI0_CC_R |= SSI_CC_CS_SYSPLL;
+    SSI0_CPSR_R &= ~SSI_CPSR_CPSDVSR_M;                    // clear bit fields for SSI Clock Prescale Divisor
+    SSI0_CPSR_R += 40;                                     // /40 clock divisor
     SSI0_CR0_R &= ~SSI_CR0_SCR_M;                          // clear bit fields for SSI0 Serial Clock Rate, SCR = 0
     SSI0_CR0_R &= ~SSI_CR0_SPH;                            // clear bit fields for SSI0 Serial Clock Phase, SPH = 0
     SSI0_CR0_R &= ~SSI_CR0_SPO;                            // clear bit fields for SSI0 Serial Clock Polarity, SPO = 0
@@ -84,10 +84,6 @@ void PN532_SSI_Init(void) {
     SSI0_CR0_R |= SSI_CR0_DSS_8;                           // set SSI data size to 8
     SSI0_CR1_R |= SSI_CR1_SSE;                             // enable SSI operation
     
-    for (int i = 0; i < 8000000; i++);
-    while(1) {
-        lol();
-    }
 }
 
 
@@ -100,15 +96,15 @@ void PN532_SSI_Init(void) {
 /*
  *
  */
-uint32_t PN532_Firmware_Version(void) {
+uint32_t PN532_getFirmwareVersion(void) {
     
     packet_buffer[0] = PN532_COMMAND_GETFIRMWAREVERSION;
     
-    if (!write_command_ACK(packet_buffer, 1, 1000)) return 0;
+    if (!writeCommandACK(packet_buffer, 1, 100)) return 0;
     
     GPIO_PORTF_DATA_R = 0x08;
     // read data packet
-    read_data(packet_buffer, 12);
+    readData(packet_buffer, 12);
     
     // check some basic stuff
     
@@ -137,6 +133,23 @@ uint32_t PN532_Firmware_Version(void) {
  *                                                  *
  ****************************************************/
 
+/*
+ *  Waits for an ISO14443A target to enter the field
+ *  @param  cardBaudRate  Baud rate of the card
+ *  @param  uid           Pointer to the array that will be populated
+ *                        with the card's UID (up to 7 bytes)
+ *  @param  uidLength     Pointer to the variable that will hold the
+ *                        length of the card's UID.
+ *  @returns 1 if everything executed properly, 0 for an error
+ */
+int readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length, uint16_t timeout) {
+    packet_buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
+    packet_buffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
+    packet_buffer[2] = card_baudrate;
+    
+    
+    return 0;
+}
 
 
 
@@ -151,6 +164,15 @@ uint32_t PN532_Firmware_Version(void) {
  *                                                  *
  ****************************************************/
 
+/*
+ *
+ */
+int mifareclassic_isTrailerBlock (uint32_t uiBlock)
+{
+    // Test if we are in the small or big sectors
+    if (uiBlock < 128) return ((uiBlock + 1) % 4 == 0);
+    else return ((uiBlock + 1) % 16 == 0);
+}
 
 
 
@@ -166,39 +188,47 @@ uint32_t PN532_Firmware_Version(void) {
  *                                                  *
  ****************************************************/
 /**
- * read_ACK
+ * readACK
  * ----------
  */
-int read_ACK() {
-    uint8_t ACK_buffer[6];                                           // buffer for ACK signal
-    read_data(ACK_buffer, 6);                                        // read ACK signal
-    return 0 == strncmp((char *)ACK_Frame, (char *)ACK_buffer, 6);
+int8_t readACK() {
+    const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00}; // see NXP PN532 data sheet page 30
+    uint8_t ACK_buffer[6];                                            // buffer for ACK signal
+    readData(ACK_buffer, 6);                                         // read ACK signal
+    return memcmp(ACK_frame, ACK_buffer, 6);
 }
 
 
 /**
- * is_ready_for_response
+ * isReadyForResponse
  * ----------
  */
-static int is_ready_for_response(void) {
-    uint8_t byte;                                               // one byte of data to read
+static int isReadyForResponse(void) {
     SSI_write(PN532_SPI_STATREAD);                              // write SPI starting command to PN532 module
-    byte = SSI_read();                                          // read response from PN532
-    for(int i = 0; i < 800000; i++);
-    if (byte == PN532_SPI_READY) return 1;                      // if recieve ready response, return 1
-    return 0;                                                   // not ready return 0
+    
+    uint8_t status = SSI_read();                                          // read response from PN532
+    return status == PN532_SPI_READY;
 }
 
 /**
- * wait_to_be_ready_for_response
+ * waitToBeReadyForResponse
  * ----------
  */
-int wait_to_be_ready_for_response(uint16_t wait_time) {
-    for (uint16_t timer = 0; timer < wait_time; timer += 10) {  // count up to wait time
-        if (is_ready_for_response()) return 1;               // if ready, return 1
-        for(int i = 0; i < 800000; i++);                         // delay before retry
+int waitToBeReadyForResponse(uint16_t wait_time) {
+    //for (uint16_t timer = 0; timer < wait_time; timer += 10) {  // count up to wait time
+    //    if (isReadyForResponse()) return 1;               // if ready, return 1
+    //   for(int i = 0; i < 800000; i++);                         // delay before retry
+    //}
+    //return 0;                                               // time out, return 0
+    
+    while(!isReadyForResponse()) {
+        wait_time--;
+        if (wait_time == 0) {
+            return 0;
+        }
+        delay(1);
     }
-    return 0;                                               // time out, return 0
+    return 1;
 }
 
 
@@ -206,15 +236,15 @@ int wait_to_be_ready_for_response(uint16_t wait_time) {
 
 
 
-int write_command_ACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
+int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
     
-    write_command(cmd, cmd_length);
+    writeCommand(cmd, cmd_length);
     
-    if (!wait_to_be_ready_for_response(wait_time)) return 0;
+    if (!waitToBeReadyForResponse(wait_time)) return 0;
     GPIO_PORTF_DATA_R = 0x08;
-    if (!read_ACK()) return 0;
-    GPIO_PORTF_DATA_R = 0x04;
-    if (!wait_to_be_ready_for_response(wait_time)) return 0;
+    if (readACK()) return 0;
+    GPIO_PORTF_DATA_R = 0x08;
+    if (!waitToBeReadyForResponse(wait_time)) return 0;
     
     return 1;
 }
@@ -225,24 +255,19 @@ int write_command_ACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
  *
  * data sheet page 28
  */
-static void write_command(uint8_t *cmd, uint8_t cmd_length) {
-    uint8_t DCS;                                         // Data checksum, see datasheet how it is used
+static void writeCommand(uint8_t *cmd, uint8_t cmd_length) {
     
-    cmd_length++;                                        //
-    
-    SSI_write(PN532_SPI_DATAWRITE);                      //
-    
+    SSI_write(PN532_SPI_DATAWRITE);                      // tell PN532 the host about to write data
     SSI_write(PN532_PREAMBLE);                           // write PREAMBLE
     SSI_write(PN532_STARTCODE1);                         // write first byte of START CODE
     SSI_write(PN532_STARTCODE2);                         // write second byte of START CODE
+    
+    cmd_length++;                                        // length of data field: TFI + DATA
     SSI_write(cmd_length);                               // write command length to LEN
     SSI_write(~cmd_length + 1);                          // write the 2's complement of command length to LCS
     SSI_write(PN532_HOSTTOPN532);                        // a frame from the host controller to the PN532
     
-    // according to datasheet the following line is wrong, but adafruit code has equivalent code
-    // DCS = PN532_PREAMBLE + PN532_STARTCODE1 + PN532_STARTCODE2 + PN532_HOSTTOPN532;
-    
-    DCS = (uint8_t) PN532_HOSTTOPN532;
+    uint8_t DCS = PN532_HOSTTOPN532;                     // Data checksum, see datasheet how it is used
     
     for (uint8_t i = 0; i < cmd_length - 1; i++) {
         SSI_write(cmd[i]);                               // write data
@@ -251,6 +276,7 @@ static void write_command(uint8_t *cmd, uint8_t cmd_length) {
     
     SSI_write(~DCS + 1);                                 // write 2's complement of DCS
     SSI_write(PN532_POSTAMBLE);                          // write POSTAMBLE
+    
 }
 
 
@@ -261,10 +287,9 @@ static void write_command(uint8_t *cmd, uint8_t cmd_length) {
  *
  *
  */
-void read_data(uint8_t *data_buff, uint8_t data_length) {
+void readData(uint8_t *data_buff, uint8_t data_length) {
     SSI_write(PN532_SPI_DATAREAD);
     for (uint8_t i = 0; i < data_length; i++) {
-        for(int i = 0; i < 800000; i++);
         data_buff[i] = SSI_read();
     }
 }
@@ -279,7 +304,7 @@ void read_data(uint8_t *data_buff, uint8_t data_length) {
  */
 static uint8_t SSI_read(void) {
     uint8_t byte = SSI0_DR_R;
-    return reverse_bit_order(byte);
+    return reverseBitOrder(byte);
 }
 
 
@@ -293,6 +318,6 @@ static uint8_t SSI_read(void) {
  */
 static void SSI_write(uint8_t byte) {
     while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};       // wait until SSI0 not busy/transmit FIFO empty
-    SSI0_DR_R = reverse_bit_order(byte);                                        // write data
+    SSI0_DR_R = reverseBitOrder(byte);                     // write data
 }
 
