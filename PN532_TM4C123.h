@@ -12,6 +12,8 @@
 #ifndef __PN532_TM4C123_H__
 #define __PN532_TM4C123_H__
 
+#define DEBUG  // debugging mode switch
+
 #define PN532_PREAMBLE                      (0x00)
 #define PN532_STARTCODE1                    (0x00)
 #define PN532_STARTCODE2                    (0xFF)

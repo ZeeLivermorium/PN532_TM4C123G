@@ -17,11 +17,15 @@
 #include "PN532_TM4C123.h"
 #include "../inc/tm4c123gh6pm.h"   // put tm4c123gh6pm.h in your project folder or change this line
 
+#ifdef DEBUG
+#include "UART.h"
+#endif
+
 uint8_t packet_buffer[64];
 
-static void delay(uint32_t time) {
-    for(int t = time; t > 0; t--)                                // time msec
-        for(int ms = 72724*2/91; ms > 0; ms--);     // 1msec
+static void delay(uint32_t N) {
+    for(int n = 0; n < N; n++)                            // N msec
+        for(int msec = 72724*2/91; msec > 0; msec--);     // 1 msec
 }
 
 static uint8_t reverseBitOrder(uint8_t byte) {
@@ -84,6 +88,10 @@ void PN532_SSI_Init(void) {
     SSI0_CR0_R |= SSI_CR0_DSS_8;                           // set SSI data size to 8
     SSI0_CR1_R |= SSI_CR1_SSE;                             // enable SSI operation
     
+    
+#ifdef DEBUG
+    UART_Init();
+#endif
 }
 
 
@@ -133,14 +141,14 @@ uint32_t PN532_getFirmwareVersion(void) {
  *                                                  *
  ****************************************************/
 
-/*
+/**
  *  Waits for an ISO14443A target to enter the field
  *  @param  cardBaudRate  Baud rate of the card
  *  @param  uid           Pointer to the array that will be populated
  *                        with the card's UID (up to 7 bytes)
  *  @param  uidLength     Pointer to the variable that will hold the
  *                        length of the card's UID.
- *  @returns 1 if everything executed properly, 0 for an error
+ *  @return 1 if everything executed properly, 0 for an error
  */
 int readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length, uint16_t timeout) {
     packet_buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
@@ -304,6 +312,8 @@ void readData(uint8_t *data_buff, uint8_t data_length) {
  */
 static uint8_t SSI_read(void) {
     uint8_t byte = SSI0_DR_R;
+    UART_OutString("\nSSI read data: 0x");
+    UART_OutUDec(byte);
     return reverseBitOrder(byte);
 }
 
