@@ -8,6 +8,9 @@
  * ----------
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
+ * For future development and updates, please follow this repository:
+ * https://github.com/ZeeLivermorium/PN532_TM4C123G
+ * ----------
  * Zee Livermorium
  * Dec 25, 2017
  */
@@ -20,6 +23,10 @@
 #ifdef DEBUG
 #include "UART.h"
 #endif
+
+#define SS GPIO_PORTA_DATA_R
+#define SS_HIGH() SS = 0x08
+#define SS_LOW()  SS = 0
 
 uint8_t packet_buffer[64];
 
@@ -59,24 +66,24 @@ void PN532_SSI_Init(void) {
     SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R0;               // enable GPIO Port A clock
     while((SYSCTL_PRGPIO_R & SYSCTL_PRGPIO_R0) == 0){};    // allow time for activating
     
-    GPIO_PORTA_CR_R |= 0x40;           // allow changes to PF4-0
-    GPIO_PORTA_AMSEL_R &= ~0x40;       // disable analog functionality on PA2-5
-    GPIO_PORTA_PCTL_R &= 0xF0FFFFFF;   // 4) PCTL GPIO on PF4-0
-    GPIO_PORTA_DIR_R |= 0x40;          // 5) PF4,PF0 in, PF3-1 out
-    GPIO_PORTA_AFSEL_R &= ~0x40;       // 6) disable alt funct on PF7-0
-    GPIO_PORTA_DEN_R |= 0x40;          // enable digital I/O on PA2-5
-    
-    
-    
+    GPIO_PORTA_CR_R |= 0x40;
+    GPIO_PORTA_AMSEL_R &= ~0x40;
+    GPIO_PORTA_PCTL_R &= 0xF0FFFFFF;
+    GPIO_PORTA_DIR_R |= 0x40;
+    GPIO_PORTA_AFSEL_R &= ~0x40;
+    GPIO_PORTA_DEN_R |= 0x40;
     
     /* Port A Set Up */
-    GPIO_PORTA_AFSEL_R |= 0x3C;                            // enable alt funct on PA2-5
+    GPIO_PORTA_DIR_R |= 0x08;                              // make PA3 output
+    GPIO_PORTA_AFSEL_R |= 0x34;                            // enable alt funct on PA2, 4, 5
+    GPIO_PORTA_AFSEL_R &= ~0x08;                           // disable alt funct on PA3
+    GPIO_PORTA_PUR_R |= 0x3C;                              // enable weak pullup on PA2,3,4,5
+    
     GPIO_PORTA_PCTL_R &= ((~GPIO_PCTL_PA2_M) &             // clear bit fields for PA2
-                          (~GPIO_PCTL_PA3_M) &             // clear bit fields for PA3
+                          (~GPIO_PCTL_PA3_M) &             // clear bit fields for PA3, PA3 will be used as GPIO
                           (~GPIO_PCTL_PA4_M) &             // clear bit fields for PA4
                           (~GPIO_PCTL_PA5_M));             // clear bit fields for PA5
     GPIO_PORTA_PCTL_R |= (GPIO_PCTL_PA2_SSI0CLK |          // configure PA2 as SSI0CLK
-                          GPIO_PCTL_PA3_SSI0FSS |          // configure PA3 as SSI0FSS
                           GPIO_PCTL_PA4_SSI0RX |           // configure PA4 as SSI0RX
                           GPIO_PCTL_PA5_SSI0TX);           // configure PA5 as SSI0TX
     GPIO_PORTA_AMSEL_R &= ~0x3C;                           // disable analog functionality on PA2-5
@@ -88,7 +95,7 @@ void PN532_SSI_Init(void) {
     SSI0_CC_R &= ~SSI_CC_CS_M;
     SSI0_CC_R |= SSI_CC_CS_SYSPLL;
     SSI0_CPSR_R &= ~SSI_CPSR_CPSDVSR_M;                    // clear bit fields for SSI Clock Prescale Divisor
-    SSI0_CPSR_R += 80;                                     // /40 clock divisor
+    SSI0_CPSR_R += 40;                                     // /40 clock divisor, 2Mhz
     SSI0_CR0_R &= ~SSI_CR0_SCR_M;                          // clear bit fields for SSI0 Serial Clock Rate, SCR = 0
     SSI0_CR0_R &= ~SSI_CR0_SPH;                            // clear bit fields for SSI0 Serial Clock Phase, SPH = 0
     SSI0_CR0_R &= ~SSI_CR0_SPO;                            // clear bit fields for SSI0 Serial Clock Polarity, SPO = 0
@@ -98,9 +105,10 @@ void PN532_SSI_Init(void) {
     SSI0_CR0_R |= SSI_CR0_DSS_8;                           // set SSI data size to 8
     SSI0_CR1_R |= SSI_CR1_SSE;                             // enable SSI operation
     
-    GPIO_PORTA_DATA_R &= ~0x40;
+    /* Wake Up */
+    SS_LOW();
     delay(2);
-    GPIO_PORTA_DATA_R |= 0x40;
+    SS_HIGH();
     
 }
 
@@ -129,20 +137,29 @@ uint32_t PN532_getFirmwareVersion(void) {
     
     uint32_t response;
     
-    int offset = 6;
-    response = packet_buffer[offset++];
+    response = packet_buffer[0];
     response <<= 8;
-    response |= packet_buffer[offset++];
+    response |= packet_buffer[1];
     response <<= 8;
-    response |= packet_buffer[offset++];
+    response |= packet_buffer[2];
     response <<= 8;
-    response |= packet_buffer[offset++];
+    response |= packet_buffer[3];
     
     return response;
 }
 
 
 
+//int SAMConfig(void) {
+//    packet_buffer[0] = PN532_COMMAND_RFCONFIGURATION;
+//    packet_buffer[1] = 0x01; // normal mode;
+//    packet_buffer[2] = 0x14; // timeout 50ms * 20 = 1 second
+//    packet_buffer[3] = 0x01; // use IRQ pin!
+//
+//    if (!writeCommandACK(packet_buffer, 1, 100)) return 0;
+//
+//    return readData(packet_buffer, 12);
+//}
 
 
 /****************************************************
@@ -214,12 +231,12 @@ int8_t readACK() {
     const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00}; // see NXP PN532 data sheet page 30
     uint8_t ACK_buffer[6];                                            // buffer for ACK signal
     
-    GPIO_PORTA_DATA_R &= ~0x40;
-    //delay(1);
-    //SSI_write(PN532_SPI_DATAREAD);
-    readData(ACK_buffer, 6);                                         // read ACK signal
-    delay(1);
-    GPIO_PORTA_DATA_R |= 0x40;
+    SS_LOW();
+    // read ACK frame
+    readData(ACK_buffer, 6);
+    
+    SS_HIGH();
+    
     return memcmp(ACK_buffer, ACK_frame, 6);
     
 }
@@ -230,11 +247,12 @@ int8_t readACK() {
  * ----------
  */
 static int isReadyForResponse(void) {
-    GPIO_PORTA_DATA_R &= ~0x40;
+    SS_LOW();
     SSI_write(PN532_SPI_STATREAD);                              // write SPI starting command to PN532 module
+    for(int i = 0; i< 10; i++);
     uint8_t status = SSI_read();                                          // read response from PN532
-    delay(1);
-    GPIO_PORTA_DATA_R |= 0x40;
+    
+    SS_HIGH();
     
     return status == PN532_SPI_READY;
     
@@ -269,7 +287,6 @@ int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
     writeCommand(cmd, cmd_length);
     
     if (!waitToBeReadyForResponse(wait_time)) return 0;
-    GPIO_PORTF_DATA_R |= 0x08;
     if (readACK()) return 0;
     GPIO_PORTF_DATA_R |= 0x02;
     if (!waitToBeReadyForResponse(wait_time)) return 0;
@@ -284,7 +301,7 @@ int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
  * data sheet page 28
  */
 static void writeCommand(uint8_t *cmd, uint8_t cmd_length) {
-    GPIO_PORTA_DATA_R &= ~0x40;
+    SS_LOW();
     
     SSI_write(PN532_SPI_DATAWRITE);                      // tell PN532 the host about to write data
     SSI_write(PN532_PREAMBLE);                           // write PREAMBLE
@@ -306,8 +323,8 @@ static void writeCommand(uint8_t *cmd, uint8_t cmd_length) {
     SSI_write(~DCS + 1);                                 // write 2's complement of DCS
     SSI_write(PN532_POSTAMBLE);                          // write POSTAMBLE
     
-    delay(1);
-    GPIO_PORTA_DATA_R |= 0x40;
+    
+    SS_HIGH();
 }
 
 
@@ -324,7 +341,7 @@ void readData(uint8_t *data_buff, uint8_t data_length) {
     for (uint8_t i = 0; i < data_length; i++) {
         data_buff[i] = SSI_read();
         if (data_buff[i] == 0xFF && i > 3)
-            GPIO_PORTF_DATA_R |= 0x02;
+            GPIO_PORTF_DATA_R |= 0x04;
     }
     
 }

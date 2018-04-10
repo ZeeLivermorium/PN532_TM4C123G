@@ -5,6 +5,11 @@
  * You can find the elechouse PN532 driver here:
  * https://github.com/elechouse/PN532.git
  * ----------
+ * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
+ * ----------
+ * For future development and updates, please follow this repository:
+ * https://github.com/ZeeLivermorium/PN532_TM4C123G
+ * ----------
  * Zee Livermorium
  * Dec 25, 2017
  */
