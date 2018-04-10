@@ -18,15 +18,17 @@
 #include <stdint.h>
 #include <string.h>
 #include "PN532_TM4C123.h"
-#include "../inc/tm4c123gh6pm.h"   // put tm4c123gh6pm.h in your project folder or change this line
+#include "../inc/tm4c123gh6pm.h"   // put tm4c123gh6pm.h in the right path accordingly
 
 #ifdef DEBUG
 #include "UART.h"
 #endif
 
-#define SS GPIO_PORTA_DATA_R
-#define SS_HIGH() SS = 0x08
-#define SS_LOW()  SS = 0
+/*
+ * Signal select macros for SSI
+ */
+#define SS_HIGH() GPIO_PORTA_DATA_R |= 0x08
+#define SS_LOW() GPIO_PORTA_DATA_R &= ~0x08
 
 uint8_t packet_buffer[64];
 
@@ -65,13 +67,6 @@ void PN532_SSI_Init(void) {
     SYSCTL_RCGCSSI_R |= SYSCTL_RCGCSSI_R0;                 // enable SSI Module 0 clock
     SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R0;               // enable GPIO Port A clock
     while((SYSCTL_PRGPIO_R & SYSCTL_PRGPIO_R0) == 0){};    // allow time for activating
-    
-    GPIO_PORTA_CR_R |= 0x40;
-    GPIO_PORTA_AMSEL_R &= ~0x40;
-    GPIO_PORTA_PCTL_R &= 0xF0FFFFFF;
-    GPIO_PORTA_DIR_R |= 0x40;
-    GPIO_PORTA_AFSEL_R &= ~0x40;
-    GPIO_PORTA_DEN_R |= 0x40;
     
     /* Port A Set Up */
     GPIO_PORTA_DIR_R |= 0x08;                              // make PA3 output
@@ -228,14 +223,16 @@ int mifareclassic_isTrailerBlock (uint32_t uiBlock)
  */
 int8_t readACK() {
     
-    const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00}; // see NXP PN532 data sheet page 30
-    uint8_t ACK_buffer[6];                                            // buffer for ACK signal
+    const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};    // see NXP PN532 data sheet page 30
+    uint8_t ACK_buffer[6];    // buffer for ACK signal
     
-    SS_LOW();
-    // read ACK frame
     readData(ACK_buffer, 6);
     
-    SS_HIGH();
+    const uint8_t ACK_frame1[] = {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF};
+    const uint8_t ACK_frame2[] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+    
+    //if(memcmp(ACK_buffer, ACK_frame1, 6)) GPIO_PORTF_DATA_R |= 0x02;
+    //if(memcmp(ACK_buffer, ACK_frame2, 6)) GPIO_PORTF_DATA_R |= 0x04;
     
     return memcmp(ACK_buffer, ACK_frame, 6);
     
@@ -248,9 +245,12 @@ int8_t readACK() {
  */
 static int isReadyForResponse(void) {
     SS_LOW();
-    SSI_write(PN532_SPI_STATREAD);                              // write SPI starting command to PN532 module
-    for(int i = 0; i< 10; i++);
-    uint8_t status = SSI_read();                                          // read response from PN532
+    delay(1);
+    
+    SSI_write(PN532_SPI_STATREAD);    // write SPI starting command to PN532 module
+    uint8_t status = SSI_read();      // read response from PN532
+    
+    delay(1);                         // give time for the last read to finish
     
     SS_HIGH();
     
@@ -263,11 +263,6 @@ static int isReadyForResponse(void) {
  * ----------
  */
 int waitToBeReadyForResponse(uint16_t wait_time) {
-    //for (uint16_t timer = 0; timer < wait_time; timer += 10) {  // count up to wait time
-    //    if (isReadyForResponse()) return 1;               // if ready, return 1
-    //   for(int i = 0; i < 800000; i++);                         // delay before retry
-    //}
-    //return 0;                                               // time out, return 0
     
     while(!isReadyForResponse()) {
         delay(1);
@@ -287,6 +282,7 @@ int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
     writeCommand(cmd, cmd_length);
     
     if (!waitToBeReadyForResponse(wait_time)) return 0;
+    //GPIO_PORTF_DATA_R |= 0x02;
     if (readACK()) return 0;
     GPIO_PORTF_DATA_R |= 0x02;
     if (!waitToBeReadyForResponse(wait_time)) return 0;
@@ -301,28 +297,31 @@ int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time) {
  * data sheet page 28
  */
 static void writeCommand(uint8_t *cmd, uint8_t cmd_length) {
+    
     SS_LOW();
+    delay(1);
     
-    SSI_write(PN532_SPI_DATAWRITE);                      // tell PN532 the host about to write data
-    SSI_write(PN532_PREAMBLE);                           // write PREAMBLE
-    SSI_write(PN532_STARTCODE1);                         // write first byte of START CODE
-    SSI_write(PN532_STARTCODE2);                         // write second byte of START CODE
+    SSI_write(PN532_SPI_DATAWRITE);                   // tell PN532 the host about to write data
+    SSI_write(PN532_PREAMBLE);                        // write PREAMBLE
+    SSI_write(PN532_STARTCODE1);                      // write first byte of START CODE
+    SSI_write(PN532_STARTCODE2);                      // write second byte of START CODE
     
-    cmd_length++;                                        // length of data field: TFI + DATA
-    SSI_write(cmd_length);                               // write command length to LEN
-    SSI_write(~cmd_length + 1);                          // write the 2's complement of command length to LCS
-    SSI_write(PN532_HOSTTOPN532);                        // a frame from the host controller to the PN532
+    cmd_length++;                                     // length of data field: TFI + DATA
+    SSI_write(cmd_length);                            // write command length to LEN
+    SSI_write(~cmd_length + 1);                       // write the 2's complement of command length to LCS
+    SSI_write(PN532_HOSTTOPN532);                     // a frame from the host controller to the PN532
     
-    uint8_t DCS = PN532_HOSTTOPN532;                     // Data checksum, see datasheet how it is used
+    uint8_t DCS = PN532_HOSTTOPN532;                  // data checksum, see datasheet how it is used
     
     for (uint8_t i = 0; i < cmd_length - 1; i++) {
-        SSI_write(cmd[i]);                               // write data
-        DCS += cmd[i];
+        SSI_write(cmd[i]);                            // write data byte
+        DCS += cmd[i];                                // accumulate data checksum
     }
     
-    SSI_write(~DCS + 1);                                 // write 2's complement of DCS
-    SSI_write(PN532_POSTAMBLE);                          // write POSTAMBLE
+    SSI_write(~DCS + 1);                              // write 2's complement of DCS
+    SSI_write(PN532_POSTAMBLE);                       // write POSTAMBLE
     
+    delay(1);                                         // give time for the last write to finish
     
     SS_HIGH();
 }
@@ -335,14 +334,19 @@ static void writeCommand(uint8_t *cmd, uint8_t cmd_length) {
  *
  *
  */
-void readData(uint8_t *data_buff, uint8_t data_length) {
-    SSI_write(PN532_SPI_DATAREAD);
+void readData(uint8_t *data_buffer, uint8_t data_length) {
     
-    for (uint8_t i = 0; i < data_length; i++) {
-        data_buff[i] = SSI_read();
-        if (data_buff[i] == 0xFF && i > 3)
-            GPIO_PORTF_DATA_R |= 0x04;
-    }
+    SS_LOW();
+    delay(1);
+    
+    SSI_write(PN532_SPI_DATAREAD);              // tell PN532 the host about to read data
+    
+    for (uint8_t i = 0; i < data_length; i++)
+        data_buffer[i] = SSI_read();            // read data byte
+    
+    delay(1);                                   // give time for the last write to finish
+    
+    SS_HIGH();
     
 }
 
@@ -355,10 +359,10 @@ void readData(uint8_t *data_buff, uint8_t data_length) {
  * Discription: read one byte of data fromcPN532 module.
  */
 static uint8_t SSI_read(void) {
-    uint8_t byte = SSI0_DR_R;
-    UART_OutString("\nSSI read data: 0x");
-    UART_OutUDec(byte);
-    return reverseBitOrder(byte);
+    
+    while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};  // wait until SSI0 not busy/transmit FIFO empty
+    uint8_t byte = SSI0_DR_R;                           // read byte of data
+    return reverseBitOrder(byte);                       // reverse for LSB input
 }
 
 
@@ -371,7 +375,8 @@ static uint8_t SSI_read(void) {
  * Discription: write one byte of data to PN532 module.
  */
 static void SSI_write(uint8_t byte) {
-    while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};       // wait until SSI0 not busy/transmit FIFO empty
-    SSI0_DR_R = reverseBitOrder(byte);                     // write data
+    
+    while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};  // wait until SSI0 not busy/transmit FIFO empty
+    SSI0_DR_R = reverseBitOrder(byte);                  // write data, reverse for LSB output
 }
 
