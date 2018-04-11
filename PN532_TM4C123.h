@@ -214,11 +214,13 @@ uint8_t mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier,
  *               Low Level Functions                *
  *                                                  *
  ****************************************************/
-static int writeCommandACK(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time);
+static int writeCommand(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time);
 
-static void writeCommand(uint8_t *cmd, uint8_t cmd_length);
+static void writeFrame(uint8_t *cmd, uint8_t cmd_length);
 
 static void readData(uint8_t *data_buff, uint8_t data_length);
+
+static int8_t readACK();
 
 static uint8_t SSI_read(void);
 
