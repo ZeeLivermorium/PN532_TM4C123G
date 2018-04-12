@@ -20,9 +20,6 @@
 #include "PN532_TM4C123.h"
 #include "../inc/tm4c123gh6pm.h"   // put tm4c123gh6pm.h in the right path accordingly
 
-/* Signal select macros for SSI */
-#define SS_HIGH() GPIO_PORTA_DATA_R |= 0x08
-#define SS_LOW() GPIO_PORTA_DATA_R &= ~0x08
 
 /****************************************************
  *                                                  *
@@ -42,15 +39,14 @@ void PN532_SSI_Init(void) {
     while((SYSCTL_PRGPIO_R & SYSCTL_PRGPIO_R0) == 0){};    // allow time for activating
     
     /* Port A Set Up */
-    GPIO_PORTA_DIR_R |= 0x08;                              // make PA3 output
-    GPIO_PORTA_AFSEL_R |= 0x34;                            // enable alt funct on PA2, 4, 5
-    GPIO_PORTA_AFSEL_R &= ~0x08;                           // disable alt funct on PA3
-    GPIO_PORTA_PUR_R |= 0x3C;                              // enable weak pullup on PA2,3,4,5
+    GPIO_PORTA_AFSEL_R |= 0x3C;                            // enable alt funct on PA2-5
+    GPIO_PORTA_PUR_R |= 0x3C;                              // enable weak pullup on PA2-5
     GPIO_PORTA_PCTL_R &= ((~GPIO_PCTL_PA2_M) &             // clear bit fields for PA2
-                          (~GPIO_PCTL_PA3_M) &             // clear bit fields for PA3, PA3 will be used as GPIO
+                          (~GPIO_PCTL_PA3_M) &             // clear bit fields for PA3
                           (~GPIO_PCTL_PA4_M) &             // clear bit fields for PA4
                           (~GPIO_PCTL_PA5_M));             // clear bit fields for PA5
     GPIO_PORTA_PCTL_R |= (GPIO_PCTL_PA2_SSI0CLK |          // configure PA2 as SSI0CLK
+                          GPIO_PCTL_PA3_SSI0FSS |          // configure PA3 as SSI0FSS
                           GPIO_PCTL_PA4_SSI0RX |           // configure PA4 as SSI0RX
                           GPIO_PCTL_PA5_SSI0TX);           // configure PA5 as SSI0TX
     GPIO_PORTA_AMSEL_R &= ~0x3C;                           // disable analog functionality on PA2-5
@@ -71,12 +67,6 @@ void PN532_SSI_Init(void) {
     SSI0_CR0_R &= ~SSI_CR0_DSS_M;                          // clear bit fields for SSI0 Data Size Select
     SSI0_CR0_R |= SSI_CR0_DSS_8;                           // set SSI data size to 8
     SSI0_CR1_R |= SSI_CR1_SSE;                             // enable SSI operation
-    
-    /* Wake Up PN532 */
-    SS_LOW();
-    delay(4);
-    SS_HIGH();
-    
     
 }
 
@@ -248,16 +238,9 @@ int mifareclassic_isTrailerBlock (uint32_t uiBlock)
  * ----------
  */
 static int isReadyForResponse(void) {
-    SS_LOW();
-    
     SSI_write(PN532_SPI_STATREAD);      // write SPI starting command to PN532 module
     uint8_t status = SSI_read() & 1;    // read response from PN532
-    
-    delay(1);                           // give time for the last read to finish
-    SS_HIGH();
-    
-    return status == PN532_SPI_READY;
-    
+    return status == PN532_SPI_READY;   // check if PN532 is ready and return the result
 }
 
 /**
@@ -285,58 +268,42 @@ static int waitToBeReadyForResponse(uint16_t wait_time) {
 static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     if(!waitToBeReadyForResponse(1000)) return 0;
     
-    SS_LOW();
-    delay(1);
-    
     SSI_write(PN532_SPI_DATAREAD);     // tell PN532 the host about to read data
     
     if (SSI_read() != PN532_PREAMBLE   ||
         SSI_read() != PN532_STARTCODE1 ||
         SSI_read() != PN532_STARTCODE2
-        ) {
-        SS_HIGH();                     // pull SS high since we are exiting this function
+        )
         return PN532_INVALID_FRAME;    // return invalid frame code as result
-    }
     
     uint8_t LEN = SSI_read();          // LEN: number of bytes in the data field
     uint8_t LCS = SSI_read();          // LCS: Packet Length Checksum
-    if ((uint8_t)(LEN + LCS) != 0x00 ) {
-        SS_HIGH();                     // pull SS high since we are exiting this function
-        return PN532_INVALID_FRAME;    // return invalid frame code as result
-    }
+    if ((uint8_t)(LEN + LCS) != 0x00 ) return PN532_INVALID_FRAME;
     
     uint8_t PD0 = command + 1;         // PD0 is command code
-    if (SSI_read() != PN532_PN532TOHOST || PD0 != SSI_read()) {
-        SS_HIGH();                     // pull SS high since we are exiting this function
-        return PN532_INVALID_FRAME;    // return invalid frame code as result
-    }
+    if (PN532_PN532TOHOST != SSI_read() || PD0 != SSI_read())
+        return PN532_INVALID_FRAME;
     
     LEN -= 2;                          // subtract TFI and PD0(command) from DATA length
     if (LEN > data_length) {
         for (uint8_t i = 0; i < LEN; i++) SSI_read();  // dump data
         SSI_read();                                    // dump DCS
         SSI_read();                                    // dump POSTAMBLE
-        
-        SS_HIGH();                     // pull SS high since we are exiting this function
         return PN532_NO_SPACE;         // return (buffer) no space error code as result
     }
     
     uint8_t SUM = PN532_PN532TOHOST + PD0;  // SUM: TFI + DATA, DATA = PD0 + PD1 + ... + PDn
     for (uint8_t i = 0; i < LEN; i++) {
-        data_buffer[i] = SSI_read();                // get data
-        SUM += data_buffer[i];                      // accumulate SUM
+        data_buffer[i] = SSI_read();        // get data
+        SUM += data_buffer[i];              // accumulate SUM
     }
     
     uint8_t DCS = SSI_read();          // DCS: data checksum byte
-    if ((uint8_t)(SUM + DCS) != 0) {   // proper frame should result in SUM + DCS = 0
-        SS_HIGH();                     // pull SS high since we are exiting this function
-        return PN532_INVALID_FRAME;    // return invalid frame code as result
-    }
+    if ((uint8_t)(SUM + DCS) != 0)
+        return PN532_INVALID_FRAME;    // proper frame should result in SUM + DCS = 0
     
     SSI_read();         // dump POSTAMBLE
-    
-    delay(1);           // give time for the last write to finish
-    SS_HIGH();
+
     
     return LEN;
 }
@@ -347,8 +314,6 @@ static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
  * data sheet page 28
  */
 static void writeFrame(uint8_t *cmd, uint8_t cmd_length) {
-    SS_LOW();
-    delay(1);
     
     SSI_write(PN532_SPI_DATAWRITE);                   // tell PN532 the host about to write data
     SSI_write(PN532_PREAMBLE);                        // write PREAMBLE
@@ -369,9 +334,7 @@ static void writeFrame(uint8_t *cmd, uint8_t cmd_length) {
     
     SSI_write(~DCS + 1);                              // write 2's complement of DCS
     SSI_write(PN532_POSTAMBLE);                       // write POSTAMBLE
-    
-    delay(1);                                         // give time for the last write to finish
-    SS_HIGH();
+
 }
 
 
@@ -399,15 +362,9 @@ static int8_t readACK() {
     const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};    // expected ACK frame
     uint8_t ACK_buffer[6];                                               // buffer for ACK signal
     
-    SS_LOW();                                                            // start
-    delay(1);                                                            // wake up PN532
-    
     SSI_write(PN532_SPI_DATAREAD);                                       // tell PN532 the host about to read data
     for (uint8_t i = 0; i < 6; i++)
         ACK_buffer[i] = SSI_read();                                      // read data byte
-    
-    delay(1);                                                            // give time for the last write to finish
-    SS_HIGH();                                                           // end
     
     return memcmp(ACK_buffer, ACK_frame, 6);                             // check ACK frame and return
 }
