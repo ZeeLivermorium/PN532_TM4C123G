@@ -178,7 +178,7 @@ void PN532_SSI_Init(void);
  *                Generic Functions                 *
  *                                                  *
  ****************************************************/
-int SAMConfig(void);
+int8_t SAMConfig(void);
 
 uint32_t PN532_getFirmwareVersion(void);
 
@@ -186,7 +186,7 @@ int writeGPIO(uint8_t pinstate);
 
 uint8_t readGPIO(void);
 
-int setPassiveActivationRetries(uint8_t maxRetries);
+int8_t setPassiveActivationRetries(uint8_t maxRetries);
 
 /****************************************************
  *                                                  *
@@ -195,7 +195,7 @@ int setPassiveActivationRetries(uint8_t maxRetries);
  ****************************************************/
 int inListPassiveTarget();
 
-int readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length, uint16_t timeout);
+uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length);
 
 int inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
 /****************************************************
@@ -235,6 +235,26 @@ static int8_t readACK();
 static uint8_t SSI_read(void);
 
 static void SSI_write(uint8_t byte);
+
+/****************************************************
+ *                                                  *
+ *                 Helper Functions                 *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * delay
+ * ----------
+ * Description: delay N msec
+ */
+void delay(uint32_t N);
+
+/**
+ * reverseBitOrder
+ * ----------
+ * Discription: to output in the order of LSB first, we need to reverse all bits.
+ */
+static uint8_t reverseBitOrder(uint8_t byte);
 
 #endif
 

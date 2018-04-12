@@ -26,38 +26,6 @@
 
 /****************************************************
  *                                                  *
- *                 Helper Functions                 *
- *                                                  *
- ****************************************************/
-
-/**
- * delay
- * ----------
- * Description: delay N msec
- */
-static void delay(uint32_t N) {
-    for(int n = 0; n < N; n++)                            // N msec
-        for(int msec = 72724*2/91; msec > 0; msec--);     // 1 msec
-}
-
-/**
- * reverseBitOrder
- * ----------
- * Discription: to output in the order of LSB first, we need to reverse all bits.
- */
-static uint8_t reverseBitOrder(uint8_t byte) {
-    return ((byte & 0x01) << 7) +
-           ((byte & 0x02) << 5) +
-           ((byte & 0x04) << 3) +
-           ((byte & 0x08) << 1) +
-           ((byte & 0x10) >> 1) +
-           ((byte & 0x20) >> 3) +
-           ((byte & 0x40) >> 5) +
-           ((byte & 0x80) >> 7);
-}
-
-/****************************************************
- *                                                  *
  *                  Initializers                    *
  *                                                  *
  ****************************************************/
@@ -126,7 +94,7 @@ uint32_t PN532_getFirmwareVersion(void) {
     
     packet_buffer[0] = PN532_COMMAND_GETFIRMWAREVERSION; // get GETFIRMWAREVERSION command
     if (!writeCommand(packet_buffer, 1)) return 0;       // write command to PN532, return 0 means write fail
-    if (readResponse(packet_buffer, 12) < 0) return 0;      // read response from PN532, negative return value means error
+    if (readResponse(packet_buffer, 12) < 0) return 0;   // read response from PN532, negative return value means error
     
     // organize the result to an unsigned 32 bit integer
     uint32_t response;
@@ -143,17 +111,46 @@ uint32_t PN532_getFirmwareVersion(void) {
 }
 
 
+/**
+ * SAMConfig
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error.
+ * ----------
+ * @brief  Configures the SAM (Secure Access Module).
+ */
+int8_t SAMConfig(void) {
+    packet_buffer[0] = PN532_COMMAND_SAMCONFIGURATION;
+    packet_buffer[1] = 0x01;        // normal mode;
+    packet_buffer[2] = 0x14;        // timeout 50ms * 20 = 1 second
+    packet_buffer[3] = 0x01;        // use IRQ pin!
+    
+    if (!writeCommand(packet_buffer, 4)) return -1;  // write command to PN532, return 0 means write fail
+    
+    return readResponse(packet_buffer, sizeof(packet_buffer));
+}
 
-//int SAMConfig(void) {
-//    packet_buffer[0] = PN532_COMMAND_RFCONFIGURATION;
-//    packet_buffer[1] = 0x01; // normal mode;
-//    packet_buffer[2] = 0x14; // timeout 50ms * 20 = 1 second
-//    packet_buffer[3] = 0x01; // use IRQ pin!
-//
-//    if (!writeCommand(packet_buffer, 1, 100)) return 0;
-//
-//    return readData(packet_buffer, 12);
-//}
+
+
+/**
+ * setPassiveActivationRetries
+ * ----------
+ * @param  maxRetries    0xFF to wait forever, 0x00..0xFE to timeout after mxRetries.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error.
+ * ----------
+ * @brief Sets the MxRtyPassiveActivation uint8_t of the RFConfiguration register.
+ */
+int8_t setPassiveActivationRetries(uint8_t maxRetries) {
+    packet_buffer[0] = PN532_COMMAND_RFCONFIGURATION;
+    packet_buffer[1] = 5;           // Config item 5 (MaxRetries)
+    packet_buffer[2] = 0xFF;        // MxRtyATR (default = 0xFF)
+    packet_buffer[3] = 0x01;        // MxRtyPSL (default = 0x01)
+    packet_buffer[4] = maxRetries;
+    
+    if (!writeCommand(packet_buffer, 5)) return 4;  // no ACK
+    
+    return readResponse(packet_buffer, sizeof(packet_buffer));
+}
 
 
 /****************************************************
@@ -163,21 +160,47 @@ uint32_t PN532_getFirmwareVersion(void) {
  ****************************************************/
 
 /**
- *  Waits for an ISO14443A target to enter the field
- *  @param  cardBaudRate  Baud rate of the card
- *  @param  uid           Pointer to the array that will be populated
- *                        with the card's UID (up to 7 bytes)
- *  @param  uidLength     Pointer to the variable that will hold the
- *                        length of the card's UID.
- *  @return 1 if everything executed properly, 0 for an error
+ * readPassiveTargetID
+ * ----------
+ * @param  cardBaudRate  Baud rate of the card
+ * @param  uid           Pointer to the array that will be populated with the card's UID (up to 7 bytes)
+ * @param  uidLength     Pointer to the variable that will hold the length of the card's UID.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Waits for an ISO14443A target to enter the field
  */
-int readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length, uint16_t timeout) {
+uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t *uid, uint8_t *uid_length) {
     packet_buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
     packet_buffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
     packet_buffer[2] = card_baudrate;
     
+    if (!writeCommand(packet_buffer, 3)) return 0;  // command failed
+    if (readResponse(packet_buffer, sizeof(packet_buffer)) < 0) return 0;   // read data packet
     
-    return 0;
+    /*
+     ISO14443A card response should be in the following format:
+     
+     byte            Description
+     -------------   ------------------------------------------
+     b0              Tags Found
+     b1              Tag Number (only one used in this example)
+     b2..3           SENS_RES
+     b4              SEL_RES
+     b5              NFCID Length
+     b6..NFCIDLen    NFCID
+     */
+    
+    if (packet_buffer[0] != 1) return 0;         // no tags found
+    
+    uint16_t sens_res = packet_buffer[2];
+    sens_res <<= 8;
+    sens_res |= packet_buffer[3];
+    *uid_length = packet_buffer[5];               // record uid length
+    
+    for (uint8_t i = 0; i < packet_buffer[5]; i++) uid[i] = packet_buffer[6 + i];   // record uid
+    
+    return 1;
 }
 
 
@@ -260,7 +283,7 @@ static int waitToBeReadyForResponse(uint16_t wait_time) {
  *
  */
 static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
-    if(!waitToBeReadyForResponse(100)) return 0;
+    if(!waitToBeReadyForResponse(1000)) return 0;
     
     SS_LOW();
     delay(1);
@@ -362,7 +385,6 @@ static int writeCommand(uint8_t *cmd, uint8_t cmd_length) {
     writeFrame(cmd, cmd_length);                                  // write command
     if (!waitToBeReadyForResponse(PN532_ACK_WAIT_TIME)) return 0; // wait for responce to be ready
     if (readACK()) return 0;                                      // read ACK
-    GPIO_PORTF_DATA_R |= 0x04;
     
     return 1;
 }
@@ -389,10 +411,6 @@ static int8_t readACK() {
     
     return memcmp(ACK_buffer, ACK_frame, 6);                             // check ACK frame and return
 }
-
-
-
-
 
 
 /****************************************************
@@ -430,5 +448,38 @@ static void SSI_write(uint8_t byte) {
     SSI0_DR_R = reverseBitOrder(byte);                // write data, reverse for LSB output
     while((SSI0_SR_R & SSI_SR_RNE) == 0){};           // wait until response
     uint8_t data = SSI0_DR_R;                         // read byte of data, just for synchronization
+}
+
+
+/****************************************************
+ *                                                  *
+ *                 Helper Functions                 *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * delay
+ * ----------
+ * Description: delay N msec
+ */
+void delay(uint32_t N) {
+    for(int n = 0; n < N; n++)                            // N msec
+        for(int msec = 72724*2/91; msec > 0; msec--);     // 1 msec
+}
+
+/**
+ * reverseBitOrder
+ * ----------
+ * Discription: to output in the order of LSB first, we need to reverse all bits.
+ */
+static uint8_t reverseBitOrder(uint8_t byte) {
+    return ((byte & 0x01) << 7) +
+    ((byte & 0x02) << 5) +
+    ((byte & 0x04) << 3) +
+    ((byte & 0x08) << 1) +
+    ((byte & 0x10) >> 1) +
+    ((byte & 0x20) >> 3) +
+    ((byte & 0x40) >> 5) +
+    ((byte & 0x80) >> 7);
 }
 
