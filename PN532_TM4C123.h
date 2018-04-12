@@ -40,6 +40,13 @@
 #define PN532_I2C_READY                     (0x01)
 #define PN532_I2C_READYTIMEOUT              (20)
 
+#define PN532_ACK_WAIT_TIME                 (10) // ms, timeout of waiting for ACK
+
+#define PN532_INVALID_ACK                   (-1)
+#define PN532_TIMEOUT                       (-2)
+#define PN532_INVALID_FRAME                 (-3)
+#define PN532_NO_SPACE                      (-4)
+
 // PN532 Commands
 #define PN532_COMMAND_DIAGNOSE              (0x00)
 #define PN532_COMMAND_GETFIRMWAREVERSION    (0x02)
@@ -76,7 +83,6 @@
 
 #define PN532_RESPONSE_INDATAEXCHANGE       (0x41)
 #define PN532_RESPONSE_INLISTPASSIVETARGET  (0x4B)
-
 
 #define PN532_MIFARE_ISO14443A              (0x00)
 
@@ -152,6 +158,10 @@
 #define FELICA_WRITE_MAX_BLOCK_NUM          10 // for typical FeliCa card
 #define FELICA_REQ_SERVICE_MAX_NODE_NUM     32
 
+static uint8_t packet_buffer[255];
+
+static uint8_t command;
+
 /****************************************************
  *                                                  *
  *                  Initializers                    *
@@ -214,11 +224,11 @@ uint8_t mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier,
  *               Low Level Functions                *
  *                                                  *
  ****************************************************/
-static int writeCommand(uint8_t *cmd, uint8_t cmd_length, uint16_t wait_time);
+static int writeCommand(uint8_t *cmd, uint8_t cmd_length);
 
 static void writeFrame(uint8_t *cmd, uint8_t cmd_length);
 
-static void readData(uint8_t *data_buff, uint8_t data_length);
+static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length);
 
 static int8_t readACK();
 
