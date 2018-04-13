@@ -162,6 +162,8 @@ static uint8_t packet_buffer[255];
 
 static uint8_t command;
 
+static const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};    // expected ACK frame
+
 /****************************************************
  *                                                  *
  *                  Initializers                    *
@@ -193,7 +195,7 @@ int8_t setPassiveActivationRetries(uint8_t maxRetries);
  *               ISO14443A Functions                *
  *                                                  *
  ****************************************************/
-int inListPassiveTarget();
+int inListPassiveTarget(void);
 
 uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length);
 
@@ -230,7 +232,7 @@ static void writeFrame(uint8_t *cmd, uint8_t cmd_length);
 
 static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length);
 
-static int8_t readACK();
+static int8_t readACK(void);
 
 static uint8_t SSI_read(void);
 
