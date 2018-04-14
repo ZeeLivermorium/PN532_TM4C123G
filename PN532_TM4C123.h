@@ -17,8 +17,7 @@
 #ifndef __PN532_TM4C123_H__
 #define __PN532_TM4C123_H__
 
-#define DEBUG  // debugging mode switch
-
+/* Data Frame Byte */
 #define PN532_PREAMBLE                      (0x00)
 #define PN532_STARTCODE1                    (0x00)
 #define PN532_STARTCODE2                    (0xFF)
@@ -27,27 +26,41 @@
 #define PN532_HOSTTOPN532                   (0xD4)
 #define PN532_PN532TOHOST                   (0xD5)
 
+/*  */
 #define PN532_WAKEUP                        (0x55)
 
+/* GPIO */
+#define PN532_GPIO_VALIDATIONBIT            (0x80)
+#define PN532_GPIO_P30                      (0)
+#define PN532_GPIO_P31                      (1)
+#define PN532_GPIO_P32                      (2)
+#define PN532_GPIO_P33                      (3)
+#define PN532_GPIO_P34                      (4)
+#define PN532_GPIO_P35                      (5)
+
+/* SSI/SPI */
 #define PN532_SPI_STATREAD                  (0x02)
 #define PN532_SPI_DATAWRITE                 (0x01)
 #define PN532_SPI_DATAREAD                  (0x03)
 #define PN532_SPI_READY                     (0x01)
 
+/* I2C */
 #define PN532_I2C_ADDRESS                   (0x48 >> 1)
 #define PN532_I2C_READBIT                   (0x01)
 #define PN532_I2C_BUSY                      (0x00)
 #define PN532_I2C_READY                     (0x01)
 #define PN532_I2C_READYTIMEOUT              (20)
 
-#define PN532_ACK_WAIT_TIME                 (10) // ms, timeout of waiting for ACK
+/* Wait Time */
+#define PN532_ACK_WAIT_TIME                 (10)
 
+/* Error Code */
 #define PN532_INVALID_ACK                   (-1)
 #define PN532_TIMEOUT                       (-2)
 #define PN532_INVALID_FRAME                 (-3)
 #define PN532_NO_SPACE                      (-4)
 
-// PN532 Commands
+/* PN532 Commands */
 #define PN532_COMMAND_DIAGNOSE              (0x00)
 #define PN532_COMMAND_GETFIRMWAREVERSION    (0x02)
 #define PN532_COMMAND_GETGENERALSTATUS      (0x04)
@@ -86,7 +99,7 @@
 
 #define PN532_MIFARE_ISO14443A              (0x00)
 
-// Mifare Commands
+/* Mifare Commands */
 #define MIFARE_CMD_AUTH_A                   (0x60)
 #define MIFARE_CMD_AUTH_B                   (0x61)
 #define MIFARE_CMD_READ                     (0x30)
@@ -97,7 +110,7 @@
 #define MIFARE_CMD_INCREMENT                (0xC1)
 #define MIFARE_CMD_STORE                    (0xC2)
 
-// FeliCa Commands
+/* FeliCa Commands */
 #define FELICA_CMD_POLLING                  (0x00)
 #define FELICA_CMD_REQUEST_SERVICE          (0x02)
 #define FELICA_CMD_REQUEST_RESPONSE         (0x04)
@@ -105,7 +118,14 @@
 #define FELICA_CMD_WRITE_WITHOUT_ENCRYPTION (0x08)
 #define FELICA_CMD_REQUEST_SYSTEM_CODE      (0x0C)
 
-// Prefixes for NDEF Records (to identify record type)
+/* FeliCa consts */
+#define FELICA_READ_MAX_SERVICE_NUM         16
+#define FELICA_READ_MAX_BLOCK_NUM           12 // for typical FeliCa card
+#define FELICA_WRITE_MAX_SERVICE_NUM        16
+#define FELICA_WRITE_MAX_BLOCK_NUM          10 // for typical FeliCa card
+#define FELICA_REQ_SERVICE_MAX_NODE_NUM     32
+
+/* Prefixes(type) for NDEF Records */
 #define NDEF_URIPREFIX_NONE                 (0x00)
 #define NDEF_URIPREFIX_HTTP_WWWDOT          (0x01)
 #define NDEF_URIPREFIX_HTTPS_WWWDOT         (0x02)
@@ -143,26 +163,17 @@
 #define NDEF_URIPREFIX_URN_EPC              (0x22)
 #define NDEF_URIPREFIX_URN_NFC              (0x23)
 
-#define PN532_GPIO_VALIDATIONBIT            (0x80)
-#define PN532_GPIO_P30                      (0)
-#define PN532_GPIO_P31                      (1)
-#define PN532_GPIO_P32                      (2)
-#define PN532_GPIO_P33                      (3)
-#define PN532_GPIO_P34                      (4)
-#define PN532_GPIO_P35                      (5)
-
-// FeliCa consts
-#define FELICA_READ_MAX_SERVICE_NUM         16
-#define FELICA_READ_MAX_BLOCK_NUM           12 // for typical FeliCa card
-#define FELICA_WRITE_MAX_SERVICE_NUM        16
-#define FELICA_WRITE_MAX_BLOCK_NUM          10 // for typical FeliCa card
-#define FELICA_REQ_SERVICE_MAX_NODE_NUM     32
-
+/****************************************************
+ *                                                  *
+ *                    Properties                    *
+ *                                                  *
+ ****************************************************/
+// packet buffer for data exchange
 static uint8_t packet_buffer[255];
-
+// variable to hold command sent
 static uint8_t command;
-
-static const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};    // expected ACK frame
+// expected ACK frame
+static const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
 
 /****************************************************
  *                                                  *
@@ -173,16 +184,16 @@ void PN532_SSI_Init(void);
 
 // void PN532_I2C_Init(void);
 
-// void PN532_UART_Init(void);
+// void PN532_HSU_Init(void);
 
 /****************************************************
  *                                                  *
  *                Generic Functions                 *
  *                                                  *
  ****************************************************/
-int8_t SAMConfig(void);
-
 uint32_t PN532_getFirmwareVersion(void);
+
+int8_t SAMConfig(void);
 
 int writeGPIO(uint8_t pinstate);
 

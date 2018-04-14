@@ -74,7 +74,7 @@ void PN532_SSI_Init(void) {
     
     /* Wake Up PN532 */
     SS_LOW();
-    delay(4);
+    delay(2);
     SS_HIGH();
     
     
@@ -204,11 +204,11 @@ uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t *uid, uint8_t *uid_l
     if (packet_buffer[0] != 1) return 0;               // return 0, if no tags found
     
     /* byte 5 */
-    *uid_length = packet_buffer[5];                    // record uid length
+    *uid_length = packet_buffer[5];                    // save uid length
     
     /* UID */
     for (uint8_t i = 0; i < packet_buffer[5]; i++)
-        uid[i] = packet_buffer[6 + i];                 // record uid
+        uid[i] = packet_buffer[6 + i];                 // save uid byte
     
     return 1;
 }
@@ -291,7 +291,8 @@ static int waitToBeReadyForResponse(uint16_t wait_time) {
  *
  */
 static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
-    if (!waitToBeReadyForResponse(1000)) return 0;     // wait for PN532 to be ready
+    if (!waitToBeReadyForResponse(1000))
+        return PN532_TIMEOUT;                          // return time out error code as result
 
     SS_LOW();
     delay(1);
