@@ -1,1 +1,2 @@
-# PN532 for TM4C123 Microcontroller
+# PN532 NFC Library for Texas Instruments TM4C123G MCU
+

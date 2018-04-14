@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "PN532_TM4C123.h"
-#include "tm4c123gh6pm.h"      // put tm4c123gh6pm.h in the right path accordingly
+#include "../inc/tm4c123gh6pm.h"   // put tm4c123gh6pm.h in the right path accordingly
 
 /* Signal select macros for SSI */
 #define SS_HIGH() GPIO_PORTA_DATA_R |= 0x08

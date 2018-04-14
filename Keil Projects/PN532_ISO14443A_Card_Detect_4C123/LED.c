@@ -2,7 +2,7 @@
  * File: LED.c
  * LaunchPad onboard LEDs for potential debugging use.
  * ----------
- * Adapted code from ValvanoWareTM4C123 by Dr. Jonathan Valvano.
+ * Adapted code from ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * You can find ValvanoWareTM4C123 at http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1
  * You can find more of his work at http://users.ece.utexas.edu/~valvano/
  * ----------
