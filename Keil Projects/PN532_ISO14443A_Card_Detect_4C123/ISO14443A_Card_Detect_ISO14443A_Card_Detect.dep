@@ -1,25 +1,0 @@
-Dependencies for Project 'ISO14443A_Card_Detect', Target 'ISO14443A_Card_Detect': (DO NOT MODIFY !)
-F (.\ISO14443A_Card_Detect.c)(0x5AD1A197)(-c --cpu Cortex-M4.fp -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I.. -I..\..\.. --C99-I S:\ARM\Keil\ARM\RV31\INC-I S:\ARM\Keil\ARM\CMSIS\Include-I S:\ARM\Keil\ARM\Inc\TI\TM4C123-Drvmdk -DPART_TM4C123GH6PM -D_POSIX_SOURCE -DUART_BUFFERED -DTARGET_IS_TM4C123_RB1 -DTM4C123GH6PM-o .\iso14443a_card_detect.o --omf_browse .\iso14443a_card_detect.crf --depend .\iso14443a_card_detect.d)
-I (S:\ARM\Keil\ARM\ARMCC\include\stdint.h)(0x51C87C24)
-I (PLL.h)(0x55463E50)
-I (PN532_TM4C123.h)(0x5AD18749)
-I (UART.h)(0x5AD1949C)
-I (LED.h)(0x5AD0604A)
-I (../inc/tm4c123gh6pm.h)(0x5A448995)
-F (.\startup.s)(0x5198478A)(--cpu Cortex-M4.fp --pd "__EVAL SETA 1" -g --apcs=interwork --pd "__MICROLIB SETA 1"-I S:\ARM\Keil\ARM\RV31\INC-I S:\ARM\Keil\ARM\CMSIS\Include-I S:\ARM\Keil\ARM\Inc\TI\TM4C123-o .\startup.o --depend .\startup.d)
-F (.\LED.c)(0x5AD145F1)(-c --cpu Cortex-M4.fp -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I.. -I..\..\.. --C99-I S:\ARM\Keil\ARM\RV31\INC-I S:\ARM\Keil\ARM\CMSIS\Include-I S:\ARM\Keil\ARM\Inc\TI\TM4C123-Drvmdk -DPART_TM4C123GH6PM -D_POSIX_SOURCE -DUART_BUFFERED -DTARGET_IS_TM4C123_RB1 -DTM4C123GH6PM-o .\led.o --omf_browse .\led.crf --depend .\led.d)
-I (S:\ARM\Keil\ARM\ARMCC\include\stdint.h)(0x51C87C24)
-I (../inc/tm4c123gh6pm.h)(0x5A448995)
-F (.\PLL.c)(0x5545AEF2)(-c --cpu Cortex-M4.fp -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I.. -I..\..\.. --C99-I S:\ARM\Keil\ARM\RV31\INC-I S:\ARM\Keil\ARM\CMSIS\Include-I S:\ARM\Keil\ARM\Inc\TI\TM4C123-Drvmdk -DPART_TM4C123GH6PM -D_POSIX_SOURCE -DUART_BUFFERED -DTARGET_IS_TM4C123_RB1 -DTM4C123GH6PM-o .\pll.o --omf_browse .\pll.crf --depend .\pll.d)
-I (S:\ARM\Keil\ARM\ARMCC\include\stdint.h)(0x51C87C24)
-I (PLL.h)(0x55463E50)
-I (../inc/tm4c123gh6pm.h)(0x5A448995)
-F (.\PN532_TM4C123.c)(0x5AD18CAC)(-c --cpu Cortex-M4.fp -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I.. -I..\..\.. --C99-I S:\ARM\Keil\ARM\RV31\INC-I S:\ARM\Keil\ARM\CMSIS\Include-I S:\ARM\Keil\ARM\Inc\TI\TM4C123-Drvmdk -DPART_TM4C123GH6PM -D_POSIX_SOURCE -DUART_BUFFERED -DTARGET_IS_TM4C123_RB1 -DTM4C123GH6PM-o .\pn532_tm4c123.o --omf_browse .\pn532_tm4c123.crf --depend .\pn532_tm4c123.d)
-I (S:\ARM\Keil\ARM\ARMCC\include\stdint.h)(0x51C87C24)
-I (S:\ARM\Keil\ARM\ARMCC\include\string.h)(0x51C87C24)
-I (PN532_TM4C123.h)(0x5AD18749)
-I (../inc/tm4c123gh6pm.h)(0x5A448995)
-F (.\UART.c)(0x5AD19490)(-c --cpu Cortex-M4.fp -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I.. -I..\..\.. --C99-I S:\ARM\Keil\ARM\RV31\INC-I S:\ARM\Keil\ARM\CMSIS\Include-I S:\ARM\Keil\ARM\Inc\TI\TM4C123-Drvmdk -DPART_TM4C123GH6PM -D_POSIX_SOURCE -DUART_BUFFERED -DTARGET_IS_TM4C123_RB1 -DTM4C123GH6PM-o .\uart.o --omf_browse .\uart.crf --depend .\uart.d)
-I (S:\ARM\Keil\ARM\ARMCC\include\stdint.h)(0x51C87C24)
-I (UART.h)(0x5AD1949C)
-I (../inc/tm4c123gh6pm.h)(0x5A448995)
