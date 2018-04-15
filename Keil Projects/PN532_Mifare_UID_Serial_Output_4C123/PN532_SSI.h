@@ -1,5 +1,5 @@
-/*
- * PN532_SSI.h
+/*!
+ * @file PN532_SSI.h
  * ----------
  * Inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
@@ -7,8 +7,8 @@
  * You can find his book at https://www.amazon.com/gp/product/1463590156/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1
  * You can find more of his work at http://users.ece.utexas.edu/~valvano/
  * ----------
- * Zee Livermorium
- * Apr 14, 2018
+ * @author Zee Livermorium
+ * @date Apr 14, 2018
  */
 
 #ifndef __PN532_SSI_H__

@@ -1,6 +1,6 @@
-/*
- * File: Mifare_UID_ST7735.c
- * Detect Mifare/ISO14443A card and display UID on ST7735.
+/*!
+ * @file Mifare_UID_ST7735.c
+ * @brief Detect Mifare/ISO14443A card and display UID on ST7735.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here:
@@ -17,15 +17,15 @@
  * For future development and updates, please follow this repository:
  * https://github.com/ZeeLivermorium/PN532_TM4C123G
  * ----------
- * Zee Livermorium
- * Apr 12, 2018
+ * @author Zee Livermorium
+ * @date Apr 12, 2018
  */
 
 #include <stdint.h>
 #include "PLL.h"
 #include "PN532.h"
 #include "ST7735.h"
-#include "LED.h"                          // for debugging LED indication
+// #include "LED.h"                          // for debugging LED indication
 
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
@@ -35,7 +35,7 @@ int main(void) {
     PLL_Init(Bus80MHz);                   // bus clock at 80 MHz
     PN532_Init();
     ST7735_InitR(INITR_REDTAB);
-    LED_Init();
+    // LED_Init();
     
     ST7735_SetCursor(0, 0);
     ST7735_FillScreen(ST7735_BLACK);

@@ -262,7 +262,7 @@ void ST7735_DrawChar(int16_t x, int16_t y, char c, int16_t textColor, int16_t bg
 //        textColor 16-bit color of the characters
 // bgColor is Black and size is 1
 // Output: number of characters printed
-uint32_t ST7735_DrawString(uint16_t x, uint16_t y, char *pt, int16_t textColor);;
+uint32_t ST7735_DrawString(uint16_t x, uint16_t y, char *pt, int16_t textColor);
 
 
 

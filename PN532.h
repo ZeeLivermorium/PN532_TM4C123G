@@ -1,5 +1,5 @@
-/*
- * File: PN532_TM4C123.h
+/*!
+ * @file PN532_TM4C123.h
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here:
@@ -10,8 +10,8 @@
  * For future development and updates, please follow this repository:
  * https://github.com/ZeeLivermorium/PN532_TM4C123G
  * ----------
- * Zee Livermorium
- * Dec 25, 2017
+ * @author Zee Livermorium
+ * @date Dec 25, 2017
  */
 
 #ifndef __PN532_H__

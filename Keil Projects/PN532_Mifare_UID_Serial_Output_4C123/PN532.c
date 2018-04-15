@@ -1,6 +1,6 @@
-/*
- * File: PN532.c
- * PN532 Library.
+/*!
+ * @file PN532.c
+ * @brief PN532 Library.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here:
@@ -11,8 +11,8 @@
  * For future development and updates, please follow this repository:
  * https://github.com/ZeeLivermorium/PN532_TM4C123
  * ----------
- * Zee Livermorium
- * Dec 25, 2017
+ * @author Zee Livermorium
+ * @date Dec 25, 2017
  */
 
 #include <stdint.h>
@@ -20,18 +20,13 @@
 #include "PN532.h"
 #include "PN532_Setting.h"
 
-#ifdef SSI
+#if defined SSI
 #include "PN532_SSI.h"
+#elif defined I2C
+// hmmm maybe
+#elif defined HSU
+// maybe hmmm
 #endif
-
-/*
- *  SSI0 A Conncection | SSI1 D Conncection | SSI1 F Conncection | SSI2 B Conncection | SSI3 D Conncection
- *  ------------------ | ------------------ | ------------------ | ------------------ | ------------------
- *  SCK  --------- PA2 | SCK  --------- PD0 | SCK  --------- PF0 | SCK  --------- PB4 | SCK  --------- PD0
- *  SS   --------- PA3 | SS   --------- PD1 | SS   --------- PF1 | SS   --------- PB5 | SS   --------- PD1
- *  MISO --------- PA4 | MISO --------- PD2 | MISO --------- PF2 | MISO --------- PB6 | MISO --------- PD2
- *  MOSI --------- PA5 | MOSI --------- PD3 | MOSI --------- PF3 | MOSI --------- PB7 | MOSI --------- PD3
- */
 
 /****************************************************
  *                                                  *
@@ -42,12 +37,15 @@
 /**
  * PN532_Init
  * ----------
- * Discription: initialize SSI communication for PN532 Module.
+ * Discription: initialize communication with PN532. Change settings in PN532_Setting.h.
  */
 void PN532_Init(void) {
-    /*-- SSI Init --*/
     #ifdef SSI
     PN532_SSI_Init();
+    #elif defined I2C
+    // hmmm maybe
+    #elif defined HSU
+    // maybe hmmm
     #endif
 }
 
@@ -162,16 +160,16 @@ uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t *uid, uint8_t *uid_l
     if (readResponse(packet_buffer, sizeof(packet_buffer)) < 0) return 0;
     
     /*
-     |         ISO14443A Card Formatt          |
-     |  -------------------------------------  |
-     |   byte          |   Description         |
-     |  -------------  |  -------------------  |
-     |   b0            |   Tags Found          |
-     |   b1            |   Tag Number          |
-     |   b2..3         |   SENS_RES            |
-     |   b4            |   SEL_RES             |
-     |   b5            |   NFCID Length        |
-     |   b6..NFCIDLen  |   NFCID               |
+     *         ISO14443A Card Formatt
+     *  -------------------------------------
+     *   byte          |   Description
+     *  -------------  |  -------------------
+     *   b0            |   Tags Found
+     *   b1            |   Tag Number
+     *   b2..3         |   SENS_RES
+     *   b4            |   SEL_RES
+     *   b5            |   NFCID Length
+     *   b6..NFCIDLen  |   NFCID
      */
     
     /*-- authenticate and save data --*/
