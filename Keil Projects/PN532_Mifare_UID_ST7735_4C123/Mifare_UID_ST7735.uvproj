@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>ISO14443A_Card_Detect</TargetName>
+      <TargetName>Mifare_UID_ST7735</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>ISO14443A_Card_Detect</OutputName>
+          <OutputName>Mifare_UID_ST7735</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -193,8 +193,8 @@
             <ldmm>1</ldmm>
             <ldXref>1</ldXref>
             <BigEnd>0</BigEnd>
-            <AdsALst>0</AdsALst>
-            <AdsACrf>0</AdsACrf>
+            <AdsALst>1</AdsALst>
+            <AdsACrf>1</AdsACrf>
             <AdsANop>0</AdsANop>
             <AdsANot>0</AdsANot>
             <AdsLLst>1</AdsLLst>
@@ -360,7 +360,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--C99</MiscControls>
-              <Define>rvmdk PART_TM4C123GH6PM _POSIX_SOURCE UART_BUFFERED TARGET_IS_TM4C123_RB1</Define>
+              <Define>rvmdk PART_TM4C123GH6PM</Define>
               <Undefine></Undefine>
               <IncludePath>..;..\..\..</IncludePath>
             </VariousControls>
@@ -406,11 +406,6 @@
           <GroupName>Files</GroupName>
           <Files>
             <File>
-              <FileName>ISO14443A_Card_Detect.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\ISO14443A_Card_Detect.c</FilePath>
-            </File>
-            <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
               <FilePath>.\startup.s</FilePath>
@@ -426,14 +421,24 @@
               <FilePath>.\PLL.c</FilePath>
             </File>
             <File>
-              <FileName>PN532_TM4C123.c</FileName>
+              <FileName>PN532_SSI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\PN532_TM4C123.c</FilePath>
+              <FilePath>.\PN532_SSI.c</FilePath>
             </File>
             <File>
-              <FileName>UART.c</FileName>
+              <FileName>PN532.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\UART.c</FilePath>
+              <FilePath>.\PN532.c</FilePath>
+            </File>
+            <File>
+              <FileName>ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ST7735.c</FilePath>
+            </File>
+            <File>
+              <FileName>Mifare_UID_ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Mifare_UID_ST7735.c</FilePath>
             </File>
           </Files>
         </Group>

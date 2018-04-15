@@ -1,6 +1,6 @@
 /*
- * File: ISO14443A_Card_Detect.c
- * Detect ISO14443A Card.
+ * File: Mifare_UID_Serial_Output.c
+ * Detect Mifare/ISO14443A card and serial output(UART) the UID.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here:
@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 #include "PLL.h"
-#include "PN532_TM4C123.h"
+#include "PN532.h"
 #include "UART.h"                         // for serial output
 #include "LED.h"                          // for debugging LED indication
 
@@ -33,9 +33,9 @@ uint8_t uidLength;                        // Length of the UID (4 or 7 bytes dep
 int main(void) {
     /*-- TM4C123 Init --*/
     PLL_Init(Bus80MHz);                   // bus clock at 80 MHz
+    PN532_Init();                         // init and wake up PN532
     UART_Init();                          // UART for serial output
-    PN532_SSI_Init();                     // SSI communication init
-    LED_Init();
+    LED_Init();                           // LED for debug
     
     /*-- PN532 Init --*/
     uint32_t firmwareVersion = PN532_getFirmwareVersion();
@@ -56,7 +56,7 @@ int main(void) {
     UART_OutString(".");
     UART_OutUDec((firmwareVersion >> 8) & 0xFF);
     OutCRLF();
-    UART_OutString("------------------------------");
+    UART_OutString("-------------------------------");
     OutCRLF();
     
     setPassiveActivationRetries(0xFF);    // set the max number of retry attempts to read from a card

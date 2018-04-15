@@ -14,19 +14,9 @@
  * Dec 25, 2017
  */
 
-#ifndef __PN532_TM4C123_H__
-#define __PN532_TM4C123_H__
+#ifndef __PN532_H__
+#define __PN532_H__
 
-/* Data Frame Byte */
-#define PN532_PREAMBLE                      (0x00)
-#define PN532_STARTCODE1                    (0x00)
-#define PN532_STARTCODE2                    (0xFF)
-#define PN532_POSTAMBLE                     (0x00)
-
-#define PN532_HOSTTOPN532                   (0xD4)
-#define PN532_PN532TOHOST                   (0xD5)
-
-/*  */
 #define PN532_WAKEUP                        (0x55)
 
 /* GPIO */
@@ -38,27 +28,12 @@
 #define PN532_GPIO_P34                      (4)
 #define PN532_GPIO_P35                      (5)
 
-/* SSI/SPI */
-#define PN532_SPI_STATREAD                  (0x02)
-#define PN532_SPI_DATAWRITE                 (0x01)
-#define PN532_SPI_DATAREAD                  (0x03)
-#define PN532_SPI_READY                     (0x01)
-
 /* I2C */
 #define PN532_I2C_ADDRESS                   (0x48 >> 1)
 #define PN532_I2C_READBIT                   (0x01)
 #define PN532_I2C_BUSY                      (0x00)
 #define PN532_I2C_READY                     (0x01)
 #define PN532_I2C_READYTIMEOUT              (20)
-
-/* Wait Time */
-#define PN532_ACK_WAIT_TIME                 (10)
-
-/* Error Code */
-#define PN532_INVALID_ACK                   (-1)
-#define PN532_TIMEOUT                       (-2)
-#define PN532_INVALID_FRAME                 (-3)
-#define PN532_NO_SPACE                      (-4)
 
 /* PN532 Commands */
 #define PN532_COMMAND_DIAGNOSE              (0x00)
@@ -169,7 +144,6 @@
  *                                                  *
  ****************************************************/
 static uint8_t packet_buffer[255];      // packet buffer for data exchange
-static uint8_t command;                 // variable to hold command sent
 static uint8_t _uid[7];                 // ISO14443A uid
 static uint8_t _uidLen;                 // uid len
 static uint8_t _key[6];                 // Mifare Classic key
@@ -177,11 +151,9 @@ static uint8_t inListedTag;             // Tg number of inlisted tag.
 static uint8_t _felicaIDm[8];           // FeliCa IDm (NFCID2)
 static uint8_t _felicaPMm[8];           // FeliCa PMm (PAD)
 
-static const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
-
 /****************************************************
  *                                                  *
- *                  Initializers                    *
+ *                   Initializer                    *
  *                                                  *
  ****************************************************/
 
@@ -190,7 +162,7 @@ static const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
  * ----------
  * Discription: initialize SSI communication for PN532 Module.
  */
-void PN532_SSI_Init(void);
+void PN532_Init(void);
 
 // void PN532_I2C_Init(void);
 
@@ -262,6 +234,7 @@ int8_t setPassiveActivationRetries(uint8_t maxRetries);
 uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid_length);
 
 // int inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
+
 /****************************************************
  *                                                  *
  *             Mifare Classic functions             *
@@ -282,41 +255,6 @@ uint8_t mifareclassic_FormatNDEF (void);
 
 uint8_t mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url);
 
-
-/****************************************************
- *                                                  *
- *                Internal Functions                *
- *                                                  *
- ****************************************************/
-static int writeCommand(uint8_t *cmd, uint8_t cmd_length);
-
-static int16_t readResponse(uint8_t *data_buffer, uint8_t data_length);
-
-/****************************************************
- *                                                  *
- *           Low Level Interface Functions          *
- *                                                  *
- ****************************************************/
-
-/**
- * PN532_SSI_Read
- * ----------
- * Return: byte of date read from PN532 module.
- * ----------
- * Discription: read one byte of data fromcPN532 module.
- */
-static uint8_t SSI_read(void);
-
-/**
- * PN532_SSI_write
- * ----------
- * Parameters:
- *   - byte: byte of data to be written.
- * ----------
- * Discription: write one byte of data to PN532 module.
- */
-static void SSI_write(uint8_t byte);
-
 /****************************************************
  *                                                  *
  *                 Helper Functions                 *
@@ -326,16 +264,13 @@ static void SSI_write(uint8_t byte);
 /**
  * delay
  * ----------
- * Description: delay N msec
+ * Description: delay N time unit
  */
-void delay(uint32_t N);
+static void delay(uint32_t N) {
+    for(int n = 0; n < N; n++)                         // N time unitss
+        for(int msec = 10000; msec > 0; msec--);       // 1 time unit
+}
 
-/**
- * reverseBitOrder
- * ----------
- * Discription: to output in the order of LSB first, we need to reverse all bits.
- */
-static uint8_t reverseBitOrder(uint8_t byte);
 
 #endif
 
