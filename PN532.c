@@ -194,14 +194,14 @@ uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t *uid, uint8_t *uid_l
  ****************************************************/
 
 /**
- * mifareclassic_isFirstBlock
+ * mifareClassic_isFirstBlock
  * ----------
  * @param  uiBlock  block number
  * ----------
  * @brief Indicates whether the specified block number is the first block
  *        in the sector (block 0 relative to the current sector).
  */
-int mifareclassic_isFirstBlock (uint32_t uiBlock)
+int mifareClassic_isFirstBlock (uint32_t uiBlock)
 {
     // Test if we are in the small or big sectors
     if (uiBlock < 128) return ((uiBlock) % 4 == 0);
@@ -209,13 +209,13 @@ int mifareclassic_isFirstBlock (uint32_t uiBlock)
 }
 
 /**
- * mifareclassic_isTrailerBlock
+ * mifareClassic_isTrailerBlock
  * ----------
  * @param  uiBlock  block number
  * ----------
  * @brief Indicates whether the specified block number is the sector trailer
  */
-int mifareclassic_isTrailerBlock (uint32_t uiBlock)
+int mifareClassic_isTrailerBlock (uint32_t uiBlock)
 {
     // Test if we are in the small or big sectors
     if (uiBlock < 128) return ((uiBlock + 1) % 4 == 0);
@@ -223,7 +223,7 @@ int mifareclassic_isTrailerBlock (uint32_t uiBlock)
 }
 
 /**
- * mifareclassic_AuthenticateBlock
+ * mifareClassic_authenticateBlock
  * ----------
  * @param  uid           Pointer to a byte array containing the card UID.
  * @param  uidLen        The length (in bytes) of the card's UID (Should be 4 for MIFARE Classic).
@@ -237,7 +237,7 @@ int mifareclassic_isTrailerBlock (uint32_t uiBlock)
  * ----------
  * Data Sheet: section 7.3.8 InDataExchange (page 127).
  */
-uint8_t mifareclassic_AuthenticateBlock (
+uint8_t mifareClassic_authenticateBlock (
                                          uint8_t *uid,
                                          uint8_t uidLen,
                                          uint32_t blockNumber,
@@ -264,7 +264,7 @@ uint8_t mifareclassic_AuthenticateBlock (
 }
 
 /**
- * mifareclassic_readDataBlock
+ * mifareClassic_readDataBlock
  * ----------
  * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
  * @param  data          Pointer to the byte array that will hold the retrieved data (if any).
@@ -275,7 +275,7 @@ uint8_t mifareclassic_AuthenticateBlock (
  * ----------
  * Data Sheet: section 7.3.8 InDataExchange (page 127).
  */
-uint8_t mifareclassic_readDataBlock (uint8_t blockNumber, uint8_t *data) {
+uint8_t mifareClassic_readDataBlock (uint8_t blockNumber, uint8_t *data) {
 
     /*-- prepare the command --*/
     packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
@@ -296,7 +296,7 @@ uint8_t mifareclassic_readDataBlock (uint8_t blockNumber, uint8_t *data) {
 
 
 /**
- * mifareclassic_writeDataBlock
+ * mifareClassic_writeDataBlock
  * ----------
  * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
  * @param  data          The byte array that contains the data to write.
@@ -307,7 +307,7 @@ uint8_t mifareclassic_readDataBlock (uint8_t blockNumber, uint8_t *data) {
  * ----------
  * Data Sheet: section 7.3.8 InDataExchange (page 127).
  */
-uint8_t mifareclassic_writeDataBlock (uint8_t blockNumber, uint8_t *data) {
+uint8_t mifareClassic_writeDataBlock (uint8_t blockNumber, uint8_t *data) {
     /*-- prepare the command --*/
     packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
     packet_buffer[1] = 1;                              // card number
@@ -322,27 +322,27 @@ uint8_t mifareclassic_writeDataBlock (uint8_t blockNumber, uint8_t *data) {
 
 
 /**
- * mifareclassic_formatNDEF
+ * mifareClassic_formatNDEF
  * ----------
  * @return 1 if everything executed properly, 0 for an error.
  * ----------
  * @brief Formats a Mifare Classic card to store NDEF Records.
  */
-uint8_t mifareclassic_formatNDEF (void) {
+uint8_t mifareClassic_formatNDEF (void) {
     uint8_t sectorbuffer1[16] = {0x14, 0x01, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1};
     uint8_t sectorbuffer2[16] = {0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1};
     uint8_t sectorbuffer3[16] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0x78, 0x77, 0x88, 0xC1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     
-    if (!(mifareclassic_writeDataBlock (1, sectorbuffer1))) return 0;   // write block 1
-    if (!(mifareclassic_writeDataBlock (2, sectorbuffer2))) return 0;   // write block 2
+    if (!(mifareClassic_writeDataBlock (1, sectorbuffer1))) return 0;   // write block 1
+    if (!(mifareClassic_writeDataBlock (2, sectorbuffer2))) return 0;   // write block 2
     // Note sectorbuffer3[0..5] 0xA0 0xA1 0xA2 0xA3 0xA4 0xA5 must be used for key A for the MAD sector in NDEF records (sector 0)
-    if (!(mifareclassic_writeDataBlock (3, sectorbuffer3))) return 0;   // write block 3: key A and access rights
+    if (!(mifareClassic_writeDataBlock (3, sectorbuffer3))) return 0;   // write block 3: key A and access rights
 
     return 1;
 }
 
 /**
- * mifareclassic_writeNDEFURI
+ * mifareClassic_writeNDEFURI
  * ----------
  * @param  sectorNumber  The sector that the URI record should be written to (can be 1..15 for a 1K card).
  * @param  uriIdentifier The uri identifier code (0 = none, 0x01 = "http://www.", etc.).
@@ -354,7 +354,7 @@ uint8_t mifareclassic_formatNDEF (void) {
  *        the Mifare Classic card is already formatted to work as an "NFC Forum Tag" and uses a MAD1 file
  *        system. You can use the NXP TagWriter app on Android to properly format cards for this.
  */
-uint8_t mifareclassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url) {
+uint8_t mifareClassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url) {
     uint8_t len = strlen(url);                                // Figure out how long the string is
     if ((len < 1) || (len > 38)) return 0;                    // Make sure the URI payload is between 1 and 38 chars
     if ((sectorNumber < 1) || (sectorNumber > 15)) return 0;  // Make sure we're within a 1K limit for the sector number
@@ -391,16 +391,96 @@ uint8_t mifareclassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier,
     }
     
     /*-- write all three blocks back to the card --*/
-    if (!(mifareclassic_writeDataBlock (sectorNumber * 4, sectorbuffer1))) return 0;
-    if (!(mifareclassic_writeDataBlock ((sectorNumber * 4) + 1, sectorbuffer2))) return 0;
-    if (!(mifareclassic_writeDataBlock ((sectorNumber * 4) + 2, sectorbuffer3))) return 0;
+    if (!(mifareClassic_writeDataBlock (sectorNumber * 4, sectorbuffer1))) return 0;
+    if (!(mifareClassic_writeDataBlock ((sectorNumber * 4) + 1, sectorbuffer2))) return 0;
+    if (!(mifareClassic_writeDataBlock ((sectorNumber * 4) + 2, sectorbuffer3))) return 0;
     // Note sectorbuffer4[0..5] 0xD3 0xF7 0xD3 0xF7 0xD3 0xF7 must be used for key A in NDEF records
-    if (!(mifareclassic_writeDataBlock ((sectorNumber * 4) + 3, sectorbuffer4))) return 0;
+    if (!(mifareClassic_writeDataBlock ((sectorNumber * 4) + 3, sectorbuffer4))) return 0;
     
     return 1;
 }
 
 
+/****************************************************
+ *                                                  *
+ *           Mifare Ultralight functions            *
+ *                                                  *
+ ****************************************************/
+
+/**************************************************************************/
+/*!
+ Tries to read an entire 4-bytes page at the specified address.
+ 
+ @param  page        The page number (0..63 in most cases)
+ @param  buffer      Pointer to the byte array that will hold the
+ retrieved data (if any)
+ */
+/**************************************************************************/
+uint8_t PN532::mifareultralight_ReadPage (uint8_t page, uint8_t *buffer)
+{
+    if (page >= 64) {
+        DMSG("Page value out of range\n");
+        return 0;
+    }
+    
+    /* Prepare the command */
+    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    pn532_packetbuffer[1] = 1;                   /* Card number */
+    pn532_packetbuffer[2] = MIFARE_CMD_READ;     /* Mifare Read command = 0x30 */
+    pn532_packetbuffer[3] = page;                /* Page Number (0..63 in most cases) */
+    
+    /* Send the command */
+    if (HAL(writeCommand)(pn532_packetbuffer, 4)) {
+        return 0;
+    }
+    
+    /* Read the response packet */
+    HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer));
+    
+    /* If byte 8 isn't 0x00 we probably have an error */
+    if (pn532_packetbuffer[0] == 0x00) {
+        /* Copy the 4 data bytes to the output buffer         */
+        /* Block content starts at byte 9 of a valid response */
+        /* Note that the command actually reads 16 bytes or 4  */
+        /* pages at a time ... we simply discard the last 12  */
+        /* bytes                                              */
+        memcpy (buffer, pn532_packetbuffer + 1, 4);
+    } else {
+        return 0;
+    }
+    
+    // Return OK signal
+    return 1;
+}
+
+/**************************************************************************/
+/*!
+ Tries to write an entire 4-bytes data buffer at the specified page
+ address.
+ 
+ @param  page     The page number to write into.  (0..63).
+ @param  buffer   The byte array that contains the data to write.
+ 
+ @returns 1 if everything executed properly, 0 for an error
+ */
+/**************************************************************************/
+uint8_t PN532::mifareultralight_WritePage (uint8_t page, uint8_t *buffer)
+{
+    /* Prepare the first command */
+    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    pn532_packetbuffer[1] = 1;                           /* Card number */
+    pn532_packetbuffer[2] = MIFARE_CMD_WRITE_ULTRALIGHT; /* Mifare UL Write cmd = 0xA2 */
+    pn532_packetbuffer[3] = page;                        /* page Number (0..63) */
+    memcpy (pn532_packetbuffer + 4, buffer, 4);          /* Data Payload */
+    
+    /* Send the command */
+    if (HAL(writeCommand)(pn532_packetbuffer, 8)) {
+        return 0;
+    }
+    
+    /* Read the response packet */
+    return (0 < HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+}
 
 
 
