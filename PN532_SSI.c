@@ -2,7 +2,11 @@
  * @file PN532_SSI.C
  * @brief SSI communication implementation for PN532.
  * ----------
- * Inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
+ * Adapted code from elechouse PN532 driver for Arduino.
+ * You can find the elechouse PN532 driver here:
+ * https://github.com/elechouse/PN532.git
+ * ----------
+ * Low level SSI interface functions are inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
  * You can find ValvanoWareTM4C123 at http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1
  * You can find his book at https://www.amazon.com/gp/product/1463590156/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1
@@ -175,8 +179,8 @@ void PN532_SSI_Init (void) {
     while ((SYSCTL_PRGPIO_R & SYSCTL_PRGPIO_R5) == 0) {};  // allow time for activating
     
     /* Port F Set Up */
-    GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;                     // unlock GPIO Port F
-    GPIO_PORTF_CR_R = 0x0F;                                // allow changes to PF0-3
+    GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;                     // unlock GPIO Port F --- this step is only for Port F
+    GPIO_PORTF_CR_R = 0x0F;                                // allow changes to PF0-3 --- this step is only for Port F
     GPIO_PORTF_DIR_R |= 0x08;                              // make PF3 output
     GPIO_PORTF_AFSEL_R |= 0x07;                            // enable alt funct on PF0-2
     GPIO_PORTF_AFSEL_R &= ~0x08;                           // disable alt funct on PF3
@@ -400,7 +404,7 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     
     PN532_SSI_write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
     
-    /* read 1st to 3rd bytes */
+    /* read 1st (byte 0) to 3rd (byte 2) bytes */
     if (PN532_SSI_read() != PN532_PREAMBLE   ||        // first byte should be PREAMBLE
         PN532_SSI_read() != PN532_STARTCODE1 ||        // second byte should be STARTCODE1
         PN532_SSI_read() != PN532_STARTCODE2           // third byte should be STARTCODE2
