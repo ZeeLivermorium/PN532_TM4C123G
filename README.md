@@ -8,14 +8,14 @@ This repository adpated and modified source code from [**elechouse**](http://www
 
 ## API calling flow
 
-    <Application>.c →---[Calls APIs]---→ PN532.c →---(#if   defined SSI)----[Calls R/W APIs]---→ PN532_SSI.c
-                    |                            ↳---(#elif defined I2C)----[Calls R/W APIs]---→ PN532_I2C.c
-                    |                            ↳---(#elif defined HSU)----[Calls R/W APIs]---→ PN532_HSU.c
-                    ↳---[Calls APIs]---→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
+    <Application>.c →--[Calls APIs]--→ PN532.c →--(#if   defined SSI)---[Calls R/W APIs]--→ PN532_SSI.c
+                  |                          ↳----(#elif defined I2C)---[Calls R/W APIs]--→ PN532_I2C.c
+                  |                          ↳----(#elif defined HSU)---[Calls R/W APIs]--→ PN532_HSU.c
+                  ↳----[Calls APIs]--→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
                     
 **\<Application\>**: application file name placeholder. These files are in [Applications](Applications).   
 
 **(*)**: the calling path exists only if the condition inside the () is true. This preprocessor [setting](PN532_Setting.h) enables users to enable only the certain comunication protocol (SSI, I2C and HSU) that they want to use. The program only includes code corresponding to this [setting](PN532_Setting.h), which significantly reduced code size, for the precious ROM space on TM4C123G, and enables [PN532.c](PN532.c) to use same level R/W APIs across all protocols(regardless you are using SSI, I2C or HSU, you are calling the same APIs from [PN532.c](PN532.c)).
 
-**\[*\]**: action of current calling path.
+**\[*\]**: action for current calling path.
 
