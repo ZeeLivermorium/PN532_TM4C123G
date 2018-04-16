@@ -8,7 +8,11 @@ This repository adpated and modified source code from [**elechouse**](http://www
 
 ## API calling flow
 
-    <Application>.c →---[Calls APIs]---→ PN532.c →---(#ifdef SSI)----[Calls R/W APIs]---→ PN532_SSI.c
-                    |                            ↳---(#ifdef I2C)----[Calls R/W APIs]---→ PN532_I2C.c
-                    |                            ↳---(#ifdef HSU)----[Calls R/W APIs]---→ PN532_HSU.c
-                    ↳---[Calls APIs]---→ Additional Files, ie UART.c, LED.c, PLL.c and etc.                     
+    <Application>.c →---[Calls APIs]---→ PN532.c →---(#if   defined SSI)----[Calls R/W APIs]---→ PN532_SSI.c
+                    |                            ↳---(#elif defined I2C)----[Calls R/W APIs]---→ PN532_I2C.c
+                    |                            ↳---(#elif defined HSU)----[Calls R/W APIs]---→ PN532_HSU.c
+                    ↳---[Calls APIs]---→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
+                    
+- \<Application\>: application file name placeholder.   
+- (): the calling path exists only if the condition inside the () is true.
+- \[\]: Action of current calling path.
