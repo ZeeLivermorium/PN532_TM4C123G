@@ -1,5 +1,5 @@
 /*!
- * @file Mifare_UID_Serial_Output.c
+ * @file Mifare_Read_UID.c
  * @brief detect Mifare/ISO14443A card and serial output(UART) the UID.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
@@ -22,10 +22,10 @@
  */
 
 #include <stdint.h>
-#include "PLL.h"
-#include "PN532.h"
-#include "UART.h"                         // for serial output
-// #include "LED.h"                          // for debugging LED indication
+#include "../inc/PLL.h"
+#include "../inc/PN532.h"
+#include "../inc/UART.h"                  // for serial output
+// #include "../inc/LED.h"                  // for debugging LED indication
 
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)

@@ -63,8 +63,19 @@ int main(void) {
     SAMConfig();                          // configure board to read RFID tags
     
     /*-- loop --*/
-    while(1) {                            // read and process
+    while(1) {
+        OutCRLF();
+        UART_OutString("PLEASE NOTE: Formatting your card for NDEF records will change the");
+        UART_OutString("authentication keys.  To reformat your NDEF tag as a clean Mifare");
+        UART_OutString("Classic tag, use the mifareclassic_ndeftoclassic example!");
+        OutCRLF();
+        UART_OutString("Place your Mifare Classic card on the reader to format with NDEF");
+        UART_OutString("and press any key to continue ...");
+        
         if ( readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength) ) {
+            
+            
+            
             
             UART_OutString("Found a card :) ");
             OutCRLF();

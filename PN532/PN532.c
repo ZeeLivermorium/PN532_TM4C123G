@@ -203,7 +203,7 @@ uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t *uid, uint8_t *uid_l
  */
 int mifareClassic_isFirstBlock (uint32_t uiBlock)
 {
-    // Test if we are in the small or big sectors
+    /* test if we are in the small or big sectors */
     if (uiBlock < 128) return ((uiBlock) % 4 == 0);
     else return ((uiBlock) % 16 == 0);
 }
@@ -217,7 +217,7 @@ int mifareClassic_isFirstBlock (uint32_t uiBlock)
  */
 int mifareClassic_isTrailerBlock (uint32_t uiBlock)
 {
-    // Test if we are in the small or big sectors
+    /* test if we are in the small or big sectors */
     if (uiBlock < 128) return ((uiBlock + 1) % 4 == 0);
     else return ((uiBlock + 1) % 16 == 0);
 }
@@ -407,79 +407,58 @@ uint8_t mifareClassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier,
  *                                                  *
  ****************************************************/
 
-/**************************************************************************/
-/*!
- Tries to read an entire 4-bytes page at the specified address.
- 
- @param  page        The page number (0..63 in most cases)
- @param  buffer      Pointer to the byte array that will hold the
- retrieved data (if any)
+/**
+ * mifareUltralight_readPage
+ * ----------
+ * @param  page        The page number (0..63 in most cases)
+ * @param  buffer      Pointer to the byte array that will hold the
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to read an entire 4-bytes page at the specified address.
  */
-/**************************************************************************/
-uint8_t PN532::mifareultralight_ReadPage (uint8_t page, uint8_t *buffer)
-{
-    if (page >= 64) {
-        DMSG("Page value out of range\n");
-        return 0;
-    }
+uint8_t mifareUltralight_readPage (uint8_t page, uint8_t *buffer) {
+    if (page > 63) return 0;                           // page value out of range
     
-    /* Prepare the command */
-    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
-    pn532_packetbuffer[1] = 1;                   /* Card number */
-    pn532_packetbuffer[2] = MIFARE_CMD_READ;     /* Mifare Read command = 0x30 */
-    pn532_packetbuffer[3] = page;                /* Page Number (0..63 in most cases) */
+    /*-- prepare the command --*/
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;                              // card number
+    packet_buffer[2] = MIFARE_CMD_READ;                // Mifare read command
+    packet_buffer[3] = page;                           // page Number (0..63 in most cases)
     
-    /* Send the command */
-    if (HAL(writeCommand)(pn532_packetbuffer, 4)) {
-        return 0;
-    }
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 4)) return 0;
+    readResponse(packet_buffer, sizeof(packet_buffer));
     
-    /* Read the response packet */
-    HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer));
-    
-    /* If byte 8 isn't 0x00 we probably have an error */
-    if (pn532_packetbuffer[0] == 0x00) {
-        /* Copy the 4 data bytes to the output buffer         */
-        /* Block content starts at byte 9 of a valid response */
-        /* Note that the command actually reads 16 bytes or 4  */
-        /* pages at a time ... we simply discard the last 12  */
-        /* bytes                                              */
-        memcpy (buffer, pn532_packetbuffer + 1, 4);
-    } else {
-        return 0;
-    }
-    
-    // Return OK signal
+    /* authenticate status byte */
+    if (packet_buffer[0] == 0x00)
+        memcpy (buffer, packet_buffer + 1, 4);         // read a page
+    else return 0;                                     // status isn't 0x00, error
+
     return 1;
 }
 
-/**************************************************************************/
-/*!
- Tries to write an entire 4-bytes data buffer at the specified page
- address.
- 
- @param  page     The page number to write into.  (0..63).
- @param  buffer   The byte array that contains the data to write.
- 
- @returns 1 if everything executed properly, 0 for an error
+/**
+ * mifareUltralight_readPage
+ * ----------
+ * @param  page     The page number to write into.  (0..63).
+ * @param  buffer   The byte array that contains the data to write.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to write an entire 4-bytes data buffer at the specified page address.
  */
-/**************************************************************************/
-uint8_t PN532::mifareultralight_WritePage (uint8_t page, uint8_t *buffer)
-{
+uint8_t mifareUltralight_writePage (uint8_t page, uint8_t *buffer) {
     /* Prepare the first command */
-    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
-    pn532_packetbuffer[1] = 1;                           /* Card number */
-    pn532_packetbuffer[2] = MIFARE_CMD_WRITE_ULTRALIGHT; /* Mifare UL Write cmd = 0xA2 */
-    pn532_packetbuffer[3] = page;                        /* page Number (0..63) */
-    memcpy (pn532_packetbuffer + 4, buffer, 4);          /* Data Payload */
-    
-    /* Send the command */
-    if (HAL(writeCommand)(pn532_packetbuffer, 8)) {
-        return 0;
-    }
-    
-    /* Read the response packet */
-    return (0 < HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;                              // card number
+    packet_buffer[2] = MIFARE_CMD_WRITE_ULTRALIGHT;    // Mifare Ultralight write command
+    packet_buffer[3] = page;                           // page Number (0..63)
+    memcpy (packet_buffer + 4, buffer, 4);             // Data Payload
+
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 8)) return 0;
+    return readResponse(packet_buffer, sizeof(packet_buffer)) > 0;
 }
 
 

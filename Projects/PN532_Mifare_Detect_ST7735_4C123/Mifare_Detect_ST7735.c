@@ -22,10 +22,10 @@
  */
 
 #include <stdint.h>
-#include "PLL.h"
-#include "PN532.h"
-#include "ST7735.h"
-// #include "LED.h"                          // for debugging LED indication
+#include "../inc/PLL.h"
+#include "../inc/PN532.h"
+#include "../inc/ST7735.h"
+// #include "../inc/LED.h"                   // for debugging LED indication
 
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)

@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>Mifare_UID_ST7735</TargetName>
+      <TargetName>Mifare_Detect</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>Mifare_UID_ST7735</OutputName>
+          <OutputName>Mifare_Detect</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -406,39 +406,39 @@
           <GroupName>Files</GroupName>
           <Files>
             <File>
-              <FileName>startup.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\startup.s</FilePath>
+              <FileName>Mifare_Detect.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Mifare_Detect.c</FilePath>
             </File>
             <File>
               <FileName>LED.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\LED.c</FilePath>
+              <FilePath>..\inc\LED.c</FilePath>
             </File>
             <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\PLL.c</FilePath>
-            </File>
-            <File>
-              <FileName>PN532_SSI.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\PN532_SSI.c</FilePath>
+              <FilePath>..\inc\PLL.c</FilePath>
             </File>
             <File>
               <FileName>PN532.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\PN532.c</FilePath>
+              <FilePath>..\inc\PN532.c</FilePath>
             </File>
             <File>
-              <FileName>ST7735.c</FileName>
+              <FileName>PN532_SSI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\ST7735.c</FilePath>
+              <FilePath>..\inc\PN532_SSI.c</FilePath>
             </File>
             <File>
-              <FileName>Mifare_UID_ST7735.c</FileName>
+              <FileName>UART.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Mifare_UID_ST7735.c</FilePath>
+              <FilePath>..\inc\UART.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\inc\startup.s</FilePath>
             </File>
           </Files>
         </Group>
