@@ -15,12 +15,12 @@ This repository adpated and modified source code from [**elechouse**](http://www
 Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level R/W APIs, *writeCommand* and *readResponse*. Regardless what protocol you are using, the APIs called by [PN532.c](PN532/PN532.c) are the same. This is achived by the preprocessor setting in [PN532_Setting.h](PN532_Setting.h). The setting not only enables users to turn on only the certain comunication protocol (SSI, I2C and HSU) they want to use, but also prevents from including the code for unused protocols (when SSI is used, only SSI code is included). This approach significantly reduces code size loaded into the precious ROM space on TM4C123G and allows reusable R/W APIs across all protocols (since it does not include function declaration from unused protocol, different protocol can have the same API function signatures without causing error). The setting file used in the projects locates in the [inc](Projects/inc) folder in [Projects](Projects) directory, instead of the one in the root folder. 
 
 ### API calling graph
-'''
-<ProjectName>.c →--[Calls APIs]--→ PN532.c →--(#if   defined SSI)---[Calls R/W APIs]--→ PN532_SSI.c
-              |                          ↳----(#elif defined I2C)---[Calls R/W APIs]--→ PN532_I2C.c
-              |                          ↳----(#elif defined HSU)---[Calls R/W APIs]--→ PN532_HSU.c
-              ↳----[Calls APIs]--→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
-'''  
+
+    <ProjectName>.c →--[Calls APIs]--→ PN532.c →--(#if   defined SSI)---[Calls R/W APIs]--→ PN532_SSI.c
+                  |                          ↳----(#elif defined I2C)---[Calls R/W APIs]--→ PN532_I2C.c
+                  |                          ↳----(#elif defined HSU)---[Calls R/W APIs]--→ PN532_HSU.c
+                  ↳----[Calls APIs]--→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
+
 #### In the graph: 
 - **\<ProjectName\>**: project file name placeholder.  
  
