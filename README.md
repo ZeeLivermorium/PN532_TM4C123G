@@ -5,22 +5,23 @@ This repository contains the driver software for [NXP PN532 NFC controller](http
 
 ## Supported PN532 Board
 Right now, any boards similar to the picture below are supported. This board design should be the most popular one on the market right now. Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly.
+
 ![PN532 Board](PN532.jpg)
 
 ## Protocols
 - [x] SSI/SPI: All SSI ports supported.
-- [  ] I2C: Not supported.
-- [  ] HSU: Not supported.
+- [ ] I2C: Not supported.
+- [ ] HSU: Not supported.
 
 ## API
 Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level R/W APIs, *writeCommand* and *readResponse*. Regardless what protocol you are using, the APIs called by [PN532.c](PN532/PN532.c) are the same. This is achived by the preprocessor setting in [PN532_Setting.h](PN532_Setting.h). The setting not only enables users to turn on only the certain comunication protocol (SSI, I2C and HSU) they want to use, but also prevents from including the code for unused protocols (when SSI is used, only SSI code is included). This approach significantly reduces code size loaded into the precious ROM space on TM4C123G and allows reusable R/W APIs across all protocols (since it does not include function declaration from unused protocol, different protocol can have the same API function signatures without causing error). The setting file used in the projects locates in the [inc](Projects/inc) folder in [Projects](Projects) directory, instead of the one in the root folder. 
 
 ### API calling graph
 
-<ProjectName>.c →--[Calls APIs]--→ PN532.c →--(#if   defined SSI)---[Calls R/W APIs]--→ PN532_SSI.c
-|                          ↳----(#elif defined I2C)---[Calls R/W APIs]--→ PN532_I2C.c
-|                          ↳----(#elif defined HSU)---[Calls R/W APIs]--→ PN532_HSU.c
-↳----[Calls APIs]--→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
+    <ProjectName>.c →--[Calls APIs]--→ PN532.c →--(#if   defined SSI)---[Calls R/W APIs]--→ PN532_SSI.c
+                  |                          ↳----(#elif defined I2C)---[Calls R/W APIs]--→ PN532_I2C.c
+                  |                          ↳----(#elif defined HSU)---[Calls R/W APIs]--→ PN532_HSU.c
+                  ↳----[Calls APIs]--→ Additional Files, ie UART.c, LED.c, PLL.c and etc.    
 
 #### In the graph: 
 - **\<ProjectName\>**: project file name placeholder.  
