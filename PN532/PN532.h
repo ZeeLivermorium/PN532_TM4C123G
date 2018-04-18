@@ -1,5 +1,5 @@
 /*!
- * @file PN532_TM4C123.h
+ * @file PN532.h
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here:
@@ -8,7 +8,7 @@
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * For future development and updates, please follow this repository:
- * https://github.com/ZeeLivermorium/PN532_TM4C123G
+ * https://github.com/ZeeLivermorium/PN532_TM4C123
  * ----------
  * @author Zee Livermorium
  * @date Dec 25, 2017
@@ -354,7 +354,7 @@ int8_t felica_Polling(
                       uint8_t *idm,
                       uint8_t *pmm,
                       uint16_t *systemCodeResponse,
-                      uint16_t timeout=1000
+                      uint16_t timeout
                       );
 
 int8_t felica_SendCommand (
@@ -386,7 +386,7 @@ int8_t felica_WriteWithoutEncryption (
 
 int8_t felica_RequestSystemCode(uint8_t *numSystemCode, uint16_t *systemCodeList);
 
-int8_t felica_Release();
+int8_t felica_Release(void);
 
 /****************************************************
  *                                                  *

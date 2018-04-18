@@ -23,9 +23,9 @@
 #if defined SSI
 #include "PN532_SSI.h"
 #elif defined I2C
-// hmmm maybe
+// maybe one day
 #elif defined HSU
-// maybe hmmm
+// maybe some day
 #endif
 
 /****************************************************
@@ -43,9 +43,9 @@ void PN532_Init(void) {
     #ifdef SSI
     PN532_SSI_Init();
     #elif defined I2C
-    // hmmm maybe
+    // PN532_I2C_Init(); NOT SUPPORTED
     #elif defined HSU
-    // maybe hmmm
+    // PN532_HSU_Init(); NOT SUPPORTED
     #endif
 }
 
@@ -194,126 +194,272 @@ uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t *uid, uint8_t *uid_l
  ****************************************************/
 
 /**
- * mifareclassic_isFirstBlock
+ * mifareClassic_isFirstBlock
  * ----------
  * @param  uiBlock  block number
  * ----------
  * @brief Indicates whether the specified block number is the first block
  *        in the sector (block 0 relative to the current sector).
  */
-int mifareclassic_isFirstBlock (uint32_t uiBlock)
+int mifareClassic_isFirstBlock (uint32_t uiBlock)
 {
-    // Test if we are in the small or big sectors
+    /* test if we are in the small or big sectors */
     if (uiBlock < 128) return ((uiBlock) % 4 == 0);
     else return ((uiBlock) % 16 == 0);
 }
 
 /**
- * mifareclassic_isTrailerBlock
+ * mifareClassic_isTrailerBlock
  * ----------
  * @param  uiBlock  block number
  * ----------
  * @brief Indicates whether the specified block number is the sector trailer
  */
-int mifareclassic_isTrailerBlock (uint32_t uiBlock)
+int mifareClassic_isTrailerBlock (uint32_t uiBlock)
 {
-    // Test if we are in the small or big sectors
+    /* test if we are in the small or big sectors */
     if (uiBlock < 128) return ((uiBlock + 1) % 4 == 0);
     else return ((uiBlock + 1) % 16 == 0);
 }
 
-///**
-// * mifareclassic_AuthenticateBlock
-// * ----------
-// * @param  uid           Pointer to a byte array containing the card UID
-// * @param  uidLen        The length (in bytes) of the card's UID (Should
-// *                       be 4 for MIFARE Classic)
-// * @param  blockNumber   The block number to authenticate.  (0..63 for
-// *                       1KB cards, and 0..255 for 4KB cards).
-// * @param  keyNumber     Which key type to use during authentication
-// *                       (0 = MIFARE_CMD_AUTH_A, 1 = MIFARE_CMD_AUTH_B)
-// * @param  keyData       Pointer to a byte array containing the 6 bytes
-// *                       key value
-// * ----------
-// * @return 1 if everything executed properly, 0 for an error
-// * ----------
-// * @brief Tries to authenticate a block of memory on a MIFARE card using the
-// *        INDATAEXCHANGE command.  See section 7.3.8 of the PN532 User Manual
-// *        for more information on sending MIFARE and other commands.
-// */
-//uint8_t mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, uint32_t blockNumber, uint8_t keyNumber, uint8_t *keyData)
-//{
-//    uint8_t i;
-//
-//    // Hang on to the key and uid data
-//    memcpy (_key, keyData, 6);
-//    memcpy (_uid, uid, uidLen);
-//    _uidLen = uidLen;
-//
-//    // Prepare the authentication command //
-//    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;   /* Data Exchange Header */
-//    pn532_packetbuffer[1] = 1;                              /* Max card numbers */
-//    pn532_packetbuffer[2] = (keyNumber) ? MIFARE_CMD_AUTH_B : MIFARE_CMD_AUTH_A;
-//    pn532_packetbuffer[3] = blockNumber;                    /* Block Number (1K = 0..63, 4K = 0..255 */
-//
-//    memcpy (pn532_packetbuffer + 4, _key, 6);
-//    for (i = 0; i < _uidLen; i++) pn532_packetbuffer[10 + i] = _uid[i];              /* 4 bytes card ID */
-//
-//
-//    if (!writeCommand(pn532_packetbuffer, 10 + _uidLen)) return 0;
-//
-//    if (readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer) < 0) return 0;
-//
-//    // Check if the response is valid and we are authenticated???
-//    // for an auth success it should be bytes 5-7: 0xD5 0x41 0x00
-//    // Mifare auth error is technically byte 7: 0x14 but anything other and 0x00 is not good
-//    if (pn532_packetbuffer[0] != 0x00) return 0;
-//
-//    return 1;
-//}
-//
-///**
-// * mifareclassic_readDataBlock
-// * ----------
-// * @param  blockNumber   The block number to authenticate.  (0..63 for
-// *                       1KB cards, and 0..255 for 4KB cards).
-// * @param  data          Pointer to the byte array that will hold the
-// *                       retrieved data (if any).
-// * ----------
-// * @return 1 if everything executed properly, 0 for an error
-// * ----------
-// * @brief Tries to read an entire 16-bytes data block at the specified block address.
-// */
-//uint8_t mifareclassic_readDataBlock (uint8_t blockNumber, uint8_t *data)
-//{
-//    DMSG("Trying to read 16 bytes from block ");
-//    DMSG_INT(blockNumber);
-//
-//    /* Prepare the command */
-//    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
-//    pn532_packetbuffer[1] = 1;                      /* Card number */
-//    pn532_packetbuffer[2] = MIFARE_CMD_READ;        /* Mifare Read command = 0x30 */
-//    pn532_packetbuffer[3] = blockNumber;            /* Block Number (0..63 for 1K, 0..255 for 4K) */
-//
-//    /* Send the command */
-//    if (HAL(writeCommand)(pn532_packetbuffer, 4)) {
-//        return 0;
-//    }
-//
-//    /* Read the response packet */
-//    HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer));
-//
-//    /* If byte 8 isn't 0x00 we probably have an error */
-//    if (pn532_packetbuffer[0] != 0x00) return 0;
-//
-//
-//    /* Copy the 16 data bytes to the output buffer        */
-//    /* Block content starts at byte 9 of a valid response */
-//    memcpy (data, pn532_packetbuffer + 1, 16);
-//
-//    return 1;
-//}
+/**
+ * mifareClassic_authenticateBlock
+ * ----------
+ * @param  uid           Pointer to a byte array containing the card UID.
+ * @param  uidLen        The length (in bytes) of the card's UID (Should be 4 for MIFARE Classic).
+ * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
+ * @param  keyNumber     key type to use during authentication (0 = MIFARE_CMD_AUTH_A, 1 = MIFARE_CMD_AUTH_B).
+ * @param  keyData       Pointer to a byte array containing the 6 bytes key value.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to authenticate a block of memory on a MIFARE card using the INDATAEXCHANGE command.
+ * ----------
+ * Data Sheet: section 7.3.8 InDataExchange (page 127).
+ */
+uint8_t mifareClassic_authenticateBlock (
+                                         uint8_t *uid,
+                                         uint8_t uidLen,
+                                         uint32_t blockNumber,
+                                         uint8_t keyNumber,
+                                         uint8_t *keyData
+                                        ) {
+    /* prepare the authentication command */
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;   // data exchange command
+    packet_buffer[1] = 1;                              // max card numbers
+    packet_buffer[2] = (keyNumber) ? MIFARE_CMD_AUTH_B : MIFARE_CMD_AUTH_A;
+    packet_buffer[3] = blockNumber;                    // Block Number (1K = 0..63, 4K = 0..255
+    
+    memcpy (packet_buffer + 4, keyData, 6);            // skip command and copy keyData
+    for (uint8_t i = 0; i < uidLen; i++)
+        packet_buffer[10 + i] = uid[i];                // copy uid
+    
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 10 + uidLen)) return 0;
+    readResponse(packet_buffer, sizeof(packet_buffer) < 0);
 
+    if (packet_buffer[0] != 0x00) return 0;            // this is the status byte, 0x00 means success
+
+    return 1;
+}
+
+/**
+ * mifareClassic_readDataBlock
+ * ----------
+ * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
+ * @param  data          Pointer to the byte array that will hold the retrieved data (if any).
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to read an entire 16-bytes data block at the specified block address.
+ * ----------
+ * Data Sheet: section 7.3.8 InDataExchange (page 127).
+ */
+uint8_t mifareClassic_readDataBlock (uint8_t blockNumber, uint8_t *data) {
+
+    /*-- prepare the command --*/
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;                              // card number
+    packet_buffer[2] = MIFARE_CMD_READ;                // Mifare read command
+    packet_buffer[3] = blockNumber;                    // block number (0..63 for 1K, 0..255 for 4K) */
+
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 4)) return 0;
+    readResponse(packet_buffer, sizeof(packet_buffer));
+
+    if (packet_buffer[0] != 0x00) return 0;            // this is the status byte, 0x00 means success
+
+    memcpy (data, packet_buffer + 1, 16);              // copy the 16 data bytes to the buffer
+
+    return 1;
+}
+
+
+/**
+ * mifareClassic_writeDataBlock
+ * ----------
+ * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
+ * @param  data          The byte array that contains the data to write.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to write an entire 16-bytes data block at the specified block address.
+ * ----------
+ * Data Sheet: section 7.3.8 InDataExchange (page 127).
+ */
+uint8_t mifareClassic_writeDataBlock (uint8_t blockNumber, uint8_t *data) {
+    /*-- prepare the command --*/
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;                              // card number
+    packet_buffer[2] = MIFARE_CMD_WRITE;               // Mifare write command
+    packet_buffer[3] = blockNumber;                    // Block Number (0..63 for 1K, 0..255 for 4K)
+    memcpy (packet_buffer + 4, data, 16);              // Data Payload
+    
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 20)) return 0;
+    return readResponse(packet_buffer, sizeof(packet_buffer)) > 0;
+}
+
+
+/**
+ * mifareClassic_formatNDEF
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error.
+ * ----------
+ * @brief Formats a Mifare Classic card to store NDEF Records.
+ */
+uint8_t mifareClassic_formatNDEF (void) {
+    uint8_t sectorbuffer1[16] = {0x14, 0x01, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1};
+    uint8_t sectorbuffer2[16] = {0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1, 0x03, 0xE1};
+    uint8_t sectorbuffer3[16] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0x78, 0x77, 0x88, 0xC1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    
+    if (!(mifareClassic_writeDataBlock (1, sectorbuffer1))) return 0;   // write block 1
+    if (!(mifareClassic_writeDataBlock (2, sectorbuffer2))) return 0;   // write block 2
+    // Note sectorbuffer3[0..5] 0xA0 0xA1 0xA2 0xA3 0xA4 0xA5 must be used for key A for the MAD sector in NDEF records (sector 0)
+    if (!(mifareClassic_writeDataBlock (3, sectorbuffer3))) return 0;   // write block 3: key A and access rights
+
+    return 1;
+}
+
+/**
+ * mifareClassic_writeNDEFURI
+ * ----------
+ * @param  sectorNumber  The sector that the URI record should be written to (can be 1..15 for a 1K card).
+ * @param  uriIdentifier The uri identifier code (0 = none, 0x01 = "http://www.", etc.).
+ * @param  url           The uri text to write (max 38 characters).
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief  Writes an NDEF URI Record to the specified sector (1..15). Note that this function assumes that
+ *        the Mifare Classic card is already formatted to work as an "NFC Forum Tag" and uses a MAD1 file
+ *        system. You can use the NXP TagWriter app on Android to properly format cards for this.
+ */
+uint8_t mifareClassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url) {
+    uint8_t len = strlen(url);                                // Figure out how long the string is
+    if ((len < 1) || (len > 38)) return 0;                    // Make sure the URI payload is between 1 and 38 chars
+    if ((sectorNumber < 1) || (sectorNumber > 15)) return 0;  // Make sure we're within a 1K limit for the sector number
+    
+    /*-- setup the sector buffer (w/pre-formatted TLV wrapper and NDEF message) --*/
+    uint8_t sectorbuffer1[16] = {0x00, 0x00, 0x03, len + 5, 0xD1, 0x01, len + 1, 0x55, uriIdentifier, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t sectorbuffer2[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t sectorbuffer3[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t sectorbuffer4[16] = {0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7, 0x7F, 0x07, 0x88, 0x40, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    if (len <= 6) {
+        /* unlikely we'll get a url this short, but why not ... */
+        memcpy (sectorbuffer1 + 9, url, len);
+        sectorbuffer1[len + 9] = 0xFE;
+    } else if (len == 7) {
+        /* 0xFE needs to be wrapped around to next block */
+        memcpy (sectorbuffer1 + 9, url, len);
+        sectorbuffer2[0] = 0xFE;
+    } else if ((len > 7) || (len <= 22)) {
+        /* url fits in two blocks */
+        memcpy (sectorbuffer1 + 9, url, 7);
+        memcpy (sectorbuffer2, url + 7, len - 7);
+        sectorbuffer2[len - 7] = 0xFE;
+    } else if (len == 23) {
+        /* 0xFE needs to be wrapped around to final block */
+        memcpy (sectorbuffer1 + 9, url, 7);
+        memcpy (sectorbuffer2, url + 7, len - 7);
+        sectorbuffer3[0] = 0xFE;
+    } else {
+        /* url fits in three blocks */
+        memcpy (sectorbuffer1 + 9, url, 7);
+        memcpy (sectorbuffer2, url + 7, 16);
+        memcpy (sectorbuffer3, url + 23, len - 24);
+        sectorbuffer3[len - 22] = 0xFE;
+    }
+    
+    /*-- write all three blocks back to the card --*/
+    if (!(mifareClassic_writeDataBlock (sectorNumber * 4, sectorbuffer1))) return 0;
+    if (!(mifareClassic_writeDataBlock ((sectorNumber * 4) + 1, sectorbuffer2))) return 0;
+    if (!(mifareClassic_writeDataBlock ((sectorNumber * 4) + 2, sectorbuffer3))) return 0;
+    // Note sectorbuffer4[0..5] 0xD3 0xF7 0xD3 0xF7 0xD3 0xF7 must be used for key A in NDEF records
+    if (!(mifareClassic_writeDataBlock ((sectorNumber * 4) + 3, sectorbuffer4))) return 0;
+    
+    return 1;
+}
+
+
+/****************************************************
+ *                                                  *
+ *           Mifare Ultralight functions            *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * mifareUltralight_readPage
+ * ----------
+ * @param  page        The page number (0..63 in most cases)
+ * @param  buffer      Pointer to the byte array that will hold the
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to read an entire 4-bytes page at the specified address.
+ */
+uint8_t mifareUltralight_readPage (uint8_t page, uint8_t *buffer) {
+    if (page > 63) return 0;                           // page value out of range
+    
+    /*-- prepare the command --*/
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;                              // card number
+    packet_buffer[2] = MIFARE_CMD_READ;                // Mifare read command
+    packet_buffer[3] = page;                           // page Number (0..63 in most cases)
+    
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 4)) return 0;
+    readResponse(packet_buffer, sizeof(packet_buffer));
+    
+    /* authenticate status byte */
+    if (packet_buffer[0] == 0x00)
+        memcpy (buffer, packet_buffer + 1, 4);         // read a page
+    else return 0;                                     // status isn't 0x00, error
+
+    return 1;
+}
+
+/**
+ * mifareUltralight_readPage
+ * ----------
+ * @param  page     The page number to write into.  (0..63).
+ * @param  buffer   The byte array that contains the data to write.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to write an entire 4-bytes data buffer at the specified page address.
+ */
+uint8_t mifareUltralight_writePage (uint8_t page, uint8_t *buffer) {
+    /* Prepare the first command */
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;                              // card number
+    packet_buffer[2] = MIFARE_CMD_WRITE_ULTRALIGHT;    // Mifare Ultralight write command
+    packet_buffer[3] = page;                           // page Number (0..63)
+    memcpy (packet_buffer + 4, buffer, 4);             // Data Payload
+
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, 8)) return 0;
+    return readResponse(packet_buffer, sizeof(packet_buffer)) > 0;
+}
 
 
 

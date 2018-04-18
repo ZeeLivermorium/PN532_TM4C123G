@@ -2,11 +2,16 @@
  * @file PN532_SSI.C
  * @brief SSI communication implementation for PN532.
  * ----------
- * Inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
+ * Adapted code from elechouse PN532 driver for Arduino.
+ * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git
+ * ----------
+ * Low level SSI interface functions are inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
  * You can find ValvanoWareTM4C123 at http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1
  * You can find his book at https://www.amazon.com/gp/product/1463590156/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1
  * You can find more of his work at http://users.ece.utexas.edu/~valvano/
+ * ----------
+ * For future development and updates, please follow this repository: https://github.com/ZeeLivermorium/PN532_TM4C123
  * ----------
  * @author Zee Livermorium
  * @date Apr 14, 2018
@@ -175,8 +180,8 @@ void PN532_SSI_Init (void) {
     while ((SYSCTL_PRGPIO_R & SYSCTL_PRGPIO_R5) == 0) {};  // allow time for activating
     
     /* Port F Set Up */
-    GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;                     // unlock GPIO Port F
-    GPIO_PORTF_CR_R = 0x0F;                                // allow changes to PF0-3
+    GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;                     // unlock GPIO Port F --- this step is only for Port F
+    GPIO_PORTF_CR_R = 0x0F;                                // allow changes to PF0-3 --- this step is only for Port F
     GPIO_PORTF_DIR_R |= 0x08;                              // make PF3 output
     GPIO_PORTF_AFSEL_R |= 0x07;                            // enable alt funct on PF0-2
     GPIO_PORTF_AFSEL_R &= ~0x08;                           // disable alt funct on PF3
@@ -282,6 +287,72 @@ void PN532_SSI_Init (void) {
     SS_HIGH();
 }
 
+
+/****************************************************
+ *                                                  *
+ *                   I/O Functions                  *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * SSI0_Read
+ * ----------
+ * @return date read from PN532.
+ */
+static uint8_t PN532_SSI_read (void) {
+#if defined SSI0
+    while((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI0 not busy/transmit FIFO empty
+    SSI0_DR_R = 0x00;                                     // data out, garbage, just for synchronization
+    while((SSI0_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
+    return reverseBitOrder(SSI0_DR_R);                    // LSB, reverse bit order after read
+#elif defined SSI1
+    while((SSI1_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI1 not busy/transmit FIFO empty
+    SSI1_DR_R = 0x00;                                     // data out, garbage, just for synchronization
+    while((SSI1_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
+    return reverseBitOrder(SSI1_DR_R);                    // LSB, reverse bit order after read
+#elif defined SSI2
+    while((SSI2_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI2 not busy/transmit FIFO empty
+    SSI2_DR_R = 0x00;                                     // data out, garbage, just for synchronization
+    while((SSI2_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
+    return reverseBitOrder(SSI2_DR_R);                    // LSB, reverse bit order after read
+#elif defined SSI3
+    while((SSI3_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI3 not busy/transmit FIFO empty
+    SSI3_DR_R = 0x00;                                     // data out, garbage, just for synchronization
+    while((SSI3_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
+    return reverseBitOrder(SSI3_DR_R);                    // LSB, reverse bit order after read
+#endif
+}
+
+/**
+ * SSI0_write
+ * ----------
+ * @param  data  data to be written.
+ */
+static void PN532_SSI_write(uint8_t data){
+#if defined SSI0
+    while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI1 not busy/transmit FIFO empty
+    SSI0_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
+    while ((SSI0_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
+    uint16_t sync = SSI0_DR_R;                           // read byte of data, just for synchronization
+#elif defined SSI1
+    while ((SSI1_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI3 not busy/transmit FIFO empty
+    SSI1_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
+    while ((SSI1_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
+    uint16_t sync = SSI1_DR_R;                           // read byte of data, just for synchronization
+#elif defined SSI2
+    while ((SSI2_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI2 not busy/transmit FIFO empty
+    SSI2_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
+    while ((SSI2_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
+    uint16_t sync = SSI2_DR_R;                           // read byte of data, just for synchronization
+#elif defined SSI3
+    while ((SSI3_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI3 not busy/transmit FIFO empty
+    SSI3_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
+    while ((SSI3_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
+    uint16_t sync = SSI3_DR_R;                           // read byte of data, just for synchronization
+#endif
+}
+
+
 /****************************************************
  *                                                  *
  *                Internal Functions                *
@@ -372,6 +443,13 @@ static void writeFrame(uint8_t *cmd, uint8_t cmd_length) {
     SS_HIGH();
 }
 
+
+/****************************************************
+ *                                                  *
+ *                     R/W API                      *
+ *                                                  *
+ ****************************************************/
+
 /**
  * writeCommand
  * ----------
@@ -400,7 +478,7 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     
     PN532_SSI_write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
     
-    /* read 1st to 3rd bytes */
+    /* read 1st (byte 0) to 3rd (byte 2) bytes */
     if (PN532_SSI_read() != PN532_PREAMBLE   ||        // first byte should be PREAMBLE
         PN532_SSI_read() != PN532_STARTCODE1 ||        // second byte should be STARTCODE1
         PN532_SSI_read() != PN532_STARTCODE2           // third byte should be STARTCODE2
@@ -457,68 +535,5 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     return LEN;
 }
 
-/****************************************************
- *                                                  *
- *                   I/O Functions                  *
- *                                                  *
- ****************************************************/
-
-/**
- * SSI0_Read
- * ----------
- * @return date read from PN532.
- */
-static uint8_t PN532_SSI_read (void) {
-#if defined SSI0
-    while((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI0 not busy/transmit FIFO empty
-    SSI0_DR_R = 0x00;                                     // data out, garbage, just for synchronization
-    while((SSI0_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
-    return reverseBitOrder(SSI0_DR_R);                    // LSB, reverse bit order after read
-#elif defined SSI1
-    while((SSI1_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI1 not busy/transmit FIFO empty
-    SSI1_DR_R = 0x00;                                     // data out, garbage, just for synchronization
-    while((SSI1_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
-    return reverseBitOrder(SSI1_DR_R);                    // LSB, reverse bit order after read
-#elif defined SSI2
-    while((SSI2_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI2 not busy/transmit FIFO empty
-    SSI2_DR_R = 0x00;                                     // data out, garbage, just for synchronization
-    while((SSI2_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
-    return reverseBitOrder(SSI2_DR_R);                    // LSB, reverse bit order after read
-#elif defined SSI3
-    while((SSI3_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI3 not busy/transmit FIFO empty
-    SSI3_DR_R = 0x00;                                     // data out, garbage, just for synchronization
-    while((SSI3_SR_R & SSI_SR_RNE) == 0) {};              // wait until response
-    return reverseBitOrder(SSI3_DR_R);                    // LSB, reverse bit order after read
-#endif
-}
-
-/**
- * SSI0_write
- * ----------
- * @param  data  data to be written.
- */
-static void PN532_SSI_write(uint8_t data){
-#if defined SSI0
-    while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI1 not busy/transmit FIFO empty
-    SSI0_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
-    while ((SSI0_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
-    uint16_t sync = SSI0_DR_R;                           // read byte of data, just for synchronization
-#elif defined SSI1
-    while ((SSI1_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI3 not busy/transmit FIFO empty
-    SSI1_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
-    while ((SSI1_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
-    uint16_t sync = SSI1_DR_R;                           // read byte of data, just for synchronization
-#elif defined SSI2
-    while ((SSI2_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI2 not busy/transmit FIFO empty
-    SSI2_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
-    while ((SSI2_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
-    uint16_t sync = SSI2_DR_R;                           // read byte of data, just for synchronization
-#elif defined SSI3
-    while ((SSI3_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI3 not busy/transmit FIFO empty
-    SSI3_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
-    while ((SSI3_SR_R & SSI_SR_RNE) == 0) {};            // wait until response
-    uint16_t sync = SSI3_DR_R;                           // read byte of data, just for synchronization
-#endif
-}
 
 #endif

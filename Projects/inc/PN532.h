@@ -1,5 +1,5 @@
 /*!
- * @file PN532_TM4C123.h
+ * @file PN532.h
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here:
@@ -8,7 +8,7 @@
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * For future development and updates, please follow this repository:
- * https://github.com/ZeeLivermorium/PN532_TM4C123G
+ * https://github.com/ZeeLivermorium/PN532_TM4C123
  * ----------
  * @author Zee Livermorium
  * @date Dec 25, 2017
@@ -144,9 +144,6 @@
  *                                                  *
  ****************************************************/
 static uint8_t packet_buffer[255];      // packet buffer for data exchange
-static uint8_t _uid[7];                 // ISO14443A uid
-static uint8_t _uidLen;                 // uid len
-static uint8_t _key[6];                 // Mifare Classic key
 static uint8_t inListedTag;             // Tg number of inlisted tag.
 static uint8_t _felicaIDm[8];           // FeliCa IDm (NFCID2)
 static uint8_t _felicaPMm[8];           // FeliCa PMm (PAD)
@@ -240,20 +237,156 @@ uint8_t readPassiveTargetID (uint8_t card_baudrate, uint8_t * uid, uint8_t * uid
  *             Mifare Classic functions             *
  *                                                  *
  ****************************************************/
-int mifareclassic_IsFirstBlock (uint32_t uiBlock);
 
-int mifareclassic_IsTrailerBlock (uint32_t uiBlock);
+/**
+ * mifareClassic_isFirstBlock
+ * ----------
+ * @param  uiBlock  block number
+ * ----------
+ * @brief Indicates whether the specified block number is the first block
+ *        in the sector (block 0 relative to the current sector).
+ */
+int mifareClassic_isFirstBlock (uint32_t uiBlock);
 
-uint8_t mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, uint32_t blockNumber,
-                                         uint8_t keyNumber, uint8_t *keyData);
+/**
+ * mifareClassic_isTrailerBlock
+ * ----------
+ * @param  uiBlock  block number
+ * ----------
+ * @brief Indicates whether the specified block number is the sector trailer
+ */
+int mifareClassic_isTrailerBlock (uint32_t uiBlock);
 
-uint8_t mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data);
+/**
+ * mifareClassic_authenticateBlock
+ * ----------
+ * @param  uid           Pointer to a byte array containing the card UID.
+ * @param  uidLen        The length (in bytes) of the card's UID (Should be 4 for MIFARE Classic).
+ * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
+ * @param  keyNumber     key type to use during authentication (0 = MIFARE_CMD_AUTH_A, 1 = MIFARE_CMD_AUTH_B).
+ * @param  keyData       Pointer to a byte array containing the 6 bytes key value.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to authenticate a block of memory on a MIFARE card using the INDATAEXCHANGE command.
+ * ----------
+ * Data Sheet: section 7.3.8 InDataExchange (page 127).
+ */
+uint8_t mifareClassic_authenticateBlock (
+                                         uint8_t *uid,
+                                         uint8_t uidLen,
+                                         uint32_t blockNumber,
+                                         uint8_t keyNumber,
+                                         uint8_t *keyData
+                                         );
 
-uint8_t mifareclassic_WriteDataBlock (uint8_t blockNumber, uint8_t *data);
+/**
+ * mifareClassic_readDataBlock
+ * ----------
+ * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
+ * @param  data          Pointer to the byte array that will hold the retrieved data (if any).
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to read an entire 16-bytes data block at the specified block address.
+ * ----------
+ * Data Sheet: section 7.3.8 InDataExchange (page 127).
+ */
+uint8_t mifareClassic_readDataBlock (uint8_t blockNumber, uint8_t *data);
 
-uint8_t mifareclassic_FormatNDEF (void);
+/**
+ * mifareClassic_writeDataBlock
+ * ----------
+ * @param  blockNumber   The block number to authenticate.  (0..63 for 1KB cards, and 0..255 for 4KB cards).
+ * @param  data          The byte array that contains the data to write.
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Tries to write an entire 16-bytes data block at the specified block address.
+ * ----------
+ * Data Sheet: section 7.3.8 InDataExchange (page 127).
+ */
+uint8_t mifareClassic_writeDataBlock (uint8_t blockNumber, uint8_t *data);
 
-uint8_t mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url);
+/**
+ * mifareClassic_formatNDEF
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error.
+ * ----------
+ * @brief Formats a Mifare Classic card to store NDEF Records.
+ */
+uint8_t mifareClassic_formatNDEF (void);
+
+/**
+ * mifareClassic_writeNDEFURI
+ * ----------
+ * @param  sectorNumber  The sector that the URI record should be written to (can be 1..15 for a 1K card).
+ * @param  uriIdentifier The uri identifier code (0 = none, 0x01 = "http://www.", etc.).
+ * @param  url           The uri text to write (max 38 characters).
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief  Writes an NDEF URI Record to the specified sector (1..15). Note that this function assumes that
+ *        the Mifare Classic card is already formatted to work as an "NFC Forum Tag" and uses a MAD1 file
+ *        system. You can use the NXP TagWriter app on Android to properly format cards for this.
+ */
+uint8_t mifareClassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier, const char *url);
+
+/****************************************************
+ *                                                  *
+ *           Mifare Ultralight functions            *
+ *                                                  *
+ ****************************************************/
+
+uint8_t mifareultralight_ReadPage (uint8_t page, uint8_t *buffer);
+
+uint8_t mifareultralight_WritePage (uint8_t page, uint8_t *buffer);
+
+/****************************************************
+ *                                                  *
+ *                 FeliCa Functions                 *
+ *                                                  *
+ ****************************************************/
+
+int8_t felica_Polling(
+                      uint16_t systemCode,
+                      uint8_t requestCode,
+                      uint8_t *idm,
+                      uint8_t *pmm,
+                      uint16_t *systemCodeResponse,
+                      uint16_t timeout
+                      );
+
+int8_t felica_SendCommand (
+                           const uint8_t * command,
+                           uint8_t commandlength,
+                           uint8_t * response,
+                           uint8_t * responseLength
+                           );
+
+int8_t felica_RequestService(uint8_t numNode, uint16_t *nodeCodeList, uint16_t *keyVersions) ;
+
+int8_t felica_RequestResponse(uint8_t *mode);
+
+int8_t felica_ReadWithoutEncryption (
+                                     uint8_t numService,
+                                     const uint16_t *serviceCodeList,
+                                     uint8_t numBlock,
+                                     const uint16_t *blockList,
+                                     uint8_t blockData[][16]
+                                     );
+
+int8_t felica_WriteWithoutEncryption (
+                                      uint8_t numService,
+                                      const uint16_t *serviceCodeList,
+                                      uint8_t numBlock,
+                                      const uint16_t *blockList,
+                                      uint8_t blockData[][16]
+                                      );
+
+int8_t felica_RequestSystemCode(uint8_t *numSystemCode, uint16_t *systemCodeList);
+
+int8_t felica_Release(void);
 
 /****************************************************
  *                                                  *

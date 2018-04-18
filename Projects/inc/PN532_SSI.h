@@ -1,11 +1,9 @@
 /*!
  * @file PN532_SSI.h
  * ----------
- * Inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
- * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
- * You can find ValvanoWareTM4C123 at http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1
- * You can find his book at https://www.amazon.com/gp/product/1463590156/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1
- * You can find more of his work at http://users.ece.utexas.edu/~valvano/
+ * Adapted code from elechouse PN532 driver for Arduino.
+ * You can find the elechouse PN532 driver here:
+ * https://github.com/elechouse/PN532.git
  * ----------
  * @author Zee Livermorium
  * @date Apr 14, 2018
@@ -67,33 +65,12 @@ void PN532_SSI_Init (void);
 
 /****************************************************
  *                                                  *
- *                Internal Functions                *
+ *                     R/W API                      *
  *                                                  *
  ****************************************************/
 int writeCommand(uint8_t *cmd, uint8_t cmd_length);
 
 int16_t readResponse(uint8_t *data_buffer, uint8_t data_length);
-
-
-/****************************************************
- *                                                  *
- *                   I/O Functions                  *
- *                                                  *
- ****************************************************/
-
-/**
- * SSI0_Read
- * ----------
- * @return: date read from another device.
- */
-static uint8_t PN532_SSI_read (void);
-
-/**
- * SSI0_write
- * ----------
- * @param  data  data to be written.
- */
-static void PN532_SSI_write(uint8_t data);
 
 
 #endif

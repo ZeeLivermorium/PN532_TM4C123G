@@ -1,10 +1,9 @@
 /*!
- * @file Mifare_Read_UID.c
+ * @file Mifare_Detect.c
  * @brief detect Mifare/ISO14443A card and serial output(UART) the UID.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
- * You can find the elechouse PN532 driver here:
- * https://github.com/elechouse/PN532.git
+ * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git
  * ----------
  * Inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
@@ -14,8 +13,7 @@
  * ----------
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
- * For future development and updates, please follow this repository:
- * https://github.com/ZeeLivermorium/PN532_TM4C123G
+ * For future development and updates, please follow this repository: https://github.com/ZeeLivermorium/PN532_TM4C123
  * ----------
  * @author Zee Livermorium
  * @date Apr 12, 2018
