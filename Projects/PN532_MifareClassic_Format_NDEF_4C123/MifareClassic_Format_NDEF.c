@@ -29,7 +29,7 @@
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };         // buffer to store the returned UID
 uint8_t uidLength;                               // length of the UID (4 or 7 bytes depending on ISO14443A card type)
 char* serial_buffer;                             // a buffer pointer for serial reading
-const uint8_t keyA[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+uint8_t keyA[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 // Note: check out PN532.h for all NDEF prefixes.
 
