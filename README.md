@@ -4,7 +4,7 @@
 This repository contains the driver software for [NXP PN532 NFC controller](https://www.nxp.com/docs/en/user-guide/141520.pdf) on [TI TM4C123G MCU](http://www.ti.com/lit/ds/symlink/tm4c123gh6pm.pdf) and some example projects based on the driver software, as well as other necessary [addtional files](Projects/inc). I also include Keil uVision project file (the uvproj file in each project folder) so that if you are using ARM Keil uVision with your TM4C123G, you can just double click on the uVision project file and load to your MCU. If you are using some other IDEs, you need to organize all the source files by yourself. Hope this repository can help you integrate NFC functionalities into your projects with TM4C123G. 
 
 ## Supported PN532 Board
-Right now, any boards similar to the picture below are supported. This board design should be the most popular one on the market right now. Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly.
+Right now, any boards similar to the picture below are supported. This board design should be the most popular one on the market right now. Here is a really good [guide](https://dangerousthings.com/wp-content/uploads/PN532_Manual_V3-1.pdf) for this module from [**elechouse**](http://www.elechouse.com). Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly. 
 
 ![PN532 Board](PN532.jpg)
 

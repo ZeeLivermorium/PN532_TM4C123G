@@ -256,7 +256,7 @@ uint8_t mifareClassic_authenticateBlock (
     
     /*-- write command and read response --*/
     if (!writeCommand(packet_buffer, 10 + uidLen)) return 0;
-    readResponse(packet_buffer, sizeof(packet_buffer) < 0);
+    readResponse(packet_buffer, sizeof(packet_buffer));
 
     if (packet_buffer[0] != 0x00) return 0;            // this is the status byte, 0x00 means success
 

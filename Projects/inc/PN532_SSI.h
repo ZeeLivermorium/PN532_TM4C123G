@@ -5,6 +5,9 @@
  * You can find the elechouse PN532 driver here:
  * https://github.com/elechouse/PN532.git
  * ----------
+ * For future development and updates, please follow this repository:
+ * https://github.com/ZeeLivermorium/PN532_TM4C123
+ * ----------
  * @author Zee Livermorium
  * @date Apr 14, 2018
  */
