@@ -1,12 +1,9 @@
 # PN532 NFC Library for Texas Instruments TM4C123G MCU
 
-## Copyright Note 
-This repository adpated and modified source code from [**elechouse**](http://www.elechouse.com) [PN532 driver for Arduino]( https://github.com/elechouse/PN532.git). I also include some addtional files from [ValvanoWareTM4C123](http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1), by [Dr. Jonathan Valvano](http://users.ece.utexas.edu/~valvano/), to support the [projects](Projects) in this repository. Some low level interface functions are inspired by examples in [ValvanoWareTM4C123](http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1) as well.
-
 ## Introduction
 This repository contains the driver software for [NXP PN532 NFC controller](https://www.nxp.com/docs/en/user-guide/141520.pdf) on [TI TM4C123G MCU](http://www.ti.com/lit/ds/symlink/tm4c123gh6pm.pdf) and some example projects based on the driver software, as well as other necessary [addtional files](Projects/inc). I also include Keil uVision project file (the uvproj file in each project folder) so that if you are using ARM Keil uVision with your TM4C123G, you can just double click on the uVision project file and load to your MCU. If you are using some other IDEs, you need to organize all the source files by yourself. Hope this repository can help you integrate NFC functionalities into your projects with TM4C123G. 
 
-## Supported PN532 Board
+## PN532 Module
 Right now, any boards similar to the picture below are supported. This board design should be the most popular one on the market right now. Here is a really good [guide](https://dangerousthings.com/wp-content/uploads/PN532_Manual_V3-1.pdf) for this module from [**elechouse**](http://www.elechouse.com). Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly. 
 
 ![PN532 Board](Images/PN532.jpg)
@@ -58,3 +55,5 @@ Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level
 #### [MifareClassic_Memory_Dump](Projects/PN532_MifareClassic_Memory_Dump_4C123)
 > Dump all memory content of a Mifare Classic card.
 
+## Copyright Note
+This repository adpated and modified source code from [**elechouse**](http://www.elechouse.com) [PN532 driver for Arduino]( https://github.com/elechouse/PN532.git). I also include some addtional files from [ValvanoWareTM4C123](http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1), by [Dr. Jonathan Valvano](http://users.ece.utexas.edu/~valvano/), to support the [projects](Projects) in this repository. Some low level interface functions are inspired by examples in [ValvanoWareTM4C123](http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1) as well.
