@@ -6,7 +6,7 @@ This repository contains the driver software for [NXP PN532 NFC controller](http
 ## PN532 Module
 Right now, any boards similar to the picture below are supported. This board design should be the most popular one on the market right now. Here is a really good [guide](https://dangerousthings.com/wp-content/uploads/PN532_Manual_V3-1.pdf) for this module from [**elechouse**](http://www.elechouse.com). Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly. 
 
-![PN532 Board](Images/PN532.jpg)
+![PN532 Board](Images/PN532.png)
 
 ## Protocols
 - [x] SSI/SPI: All SSI ports supported.
