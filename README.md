@@ -9,7 +9,7 @@ This repository contains the driver software for [NXP PN532 NFC controller](http
 ## Supported PN532 Board
 Right now, any boards similar to the picture below are supported. This board design should be the most popular one on the market right now. Here is a really good [guide](https://dangerousthings.com/wp-content/uploads/PN532_Manual_V3-1.pdf) for this module from [**elechouse**](http://www.elechouse.com). Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly. 
 
-![PN532 Board](PN532.jpg)
+![PN532 Board](Images/PN532.jpg)
 
 ## Protocols
 - [x] SSI/SPI: All SSI ports supported.
@@ -34,21 +34,27 @@ Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level
 - **\[action\]**: action for current calling path.
 
 ## Projects
-### [Mifare_Detect](Projects/PN532_Mifare_Detect_4C123)
+
+### Mifare/ISO14443A Card Detection
+#### [Mifare_Detect](Projects/PN532_Mifare_Detect_4C123)
 > Detect an ISO14443A card and send its UID to serial output (UART via USB).
 
-### [Mifare_Detect_ST7735](Projects/PN532_Mifare_Detect_ST7735_4C123)
+#### [Mifare_Detect_ST7735](Projects/PN532_Mifare_Detect_ST7735_4C123)
 > Detect an ISO14443A card and output its UID to an [ST7735](https://www.adafruit.com/product/358) LCD.
 
-### [MifareClassic_Format_NDEF](Projects/PN532_MifareClassic_Format_NDEF_4C123)
+### Mifare Classic
+
+![Mifare_Classic_Format_FSM](Images/Mifare_Classic_Format_FSM.png)
+
+#### [MifareClassic_Format_NDEF](Projects/PN532_MifareClassic_Format_NDEF_4C123)
 > Format a Mifare Classic card from default format to NDEF format with customized content.
 
-### [MifareClassic_NDEF_Update](Projects/PN532_MifareClassic_NDEF_Update_4C123)
+#### [MifareClassic_NDEF_Update](Projects/PN532_MifareClassic_NDEF_Update_4C123)
 > Update the content in a NDEF formatted Mifare Classic card.
 
-### [MifareClassic_Reset_Default](Projects/PN532_MifareClassic_Reset_Default_4C123)
+#### [MifareClassic_Reset_Default](Projects/PN532_MifareClassic_Reset_Default_4C123)
 > Format a NDEF formatted Mifare Classic card to its default format.
 
-### [MifareClassic_Memory_Dump](Projects/PN532_MifareClassic_Memory_Dump_4C123)
+#### [MifareClassic_Memory_Dump](Projects/PN532_MifareClassic_Memory_Dump_4C123)
 > Dump all memory content of a Mifare Classic card.
 

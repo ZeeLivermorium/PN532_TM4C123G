@@ -26,21 +26,31 @@
 #include "../inc/UART.h"                         // for serial output
 //#include "../inc/LED.h"                          // for debugging LED indication
 
+#define NR_SHORTSECTOR          (32)    // Number of short sectors on Mifare 1K/4K
+#define NR_LONGSECTOR           (8)     // Number of long sectors on Mifare 4K
+#define NR_BLOCK_OF_SHORTSECTOR (4)     // Number of blocks in a short sector
+#define NR_BLOCK_OF_LONGSECTOR  (16)    // Number of blocks in a long sector
+
+// Determine the sector trailer block based on sector number
+#define BLOCK_NUMBER_OF_SECTOR_TRAILER(sector) (((sector)<NR_SHORTSECTOR)? \
+((sector)*NR_BLOCK_OF_SHORTSECTOR + NR_BLOCK_OF_SHORTSECTOR-1):\
+(NR_SHORTSECTOR*NR_BLOCK_OF_SHORTSECTOR + (sector-NR_SHORTSECTOR)*NR_BLOCK_OF_LONGSECTOR + NR_BLOCK_OF_LONGSECTOR-1))
+
+// Determine the sector's first block based on the sector number
+#define BLOCK_NUMBER_OF_SECTOR_1ST_BLOCK(sector) (((sector)<NR_SHORTSECTOR)? \
+((sector)*NR_BLOCK_OF_SHORTSECTOR):\
+(NR_SHORTSECTOR*NR_BLOCK_OF_SHORTSECTOR + (sector-NR_SHORTSECTOR)*NR_BLOCK_OF_LONGSECTOR))
+
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };         // buffer to store the returned UID
 uint8_t uidLength;                               // length of the UID (4 or 7 bytes depending on ISO14443A card type)
 char* serial_buffer;                             // a buffer pointer for serial reading
-uint8_t keyA[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+uint8_t blockBuffer[16];
+uint8_t blankAccessBits[3] = { 0xff, 0x07, 0x80 };
+uint8_t sectorIndex = 0;
+uint8_t numOfSector = 16;                        // Assume Mifare Classic 1K for now (16 4-block sectors)
 
-// Note: check out PN532.h for all NDEF prefixes.
-
-const char * URIContent = "zeelivermorium.com";   // for a url
-uint8_t URIPrefix = NDEF_URIPREFIX_HTTP_WWWDOT;
-
-//const char * URIContent = "mail@example.com";    // for an email address
-//uint8_t URIPrefix = NDEF_URIPREFIX_MAILTO;
-
-//const char * URIContent = "+1 420 420 6969";     // for a phone number
-//uint8_t URIPrefix = NDEF_URIPREFIX_TEL;
+// The default Mifare Classic key
+static const uint8_t KEY_DEFAULT_KEYAB[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 int main(void) {
     /*-- TM4C123 Init --*/
@@ -75,7 +85,7 @@ int main(void) {
     
     /*-- loop --*/
     while(1) {
-        UART_OutString("Place your Mifare Classic card on the reader to format with NDEF, ");
+        UART_OutString("Place your NDEF formatted Mifare Classic card on the reader, ");
         OutCRLF();
         UART_OutString("and press [Enter] to continue ...");
         OutCRLF();
@@ -108,73 +118,118 @@ int main(void) {
             }
             UART_OutString("Found a Mifare Classic card :)");
             OutCRLF();
-            
-            /* try to format the card for NDEF data */
-            if (!mifareClassic_authenticateBlock (uid, uidLength, 0, 0, keyA)) {
-                UART_OutString("Unable to authenticate block 0 to enable card formatting!");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
-                delay(1500);              // PN532(no netflix) and chill before continuing :)
-                continue;
-            }
-            if (!mifareClassic_formatNDEF()) {
-                UART_OutString("Unable to format the card for NDEF");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
-                delay(1500);              // PN532(no netflix) and chill before continuing :)
-                continue;
-            }
-            UART_OutString("Card has been formatted for NDEF data using MAD1.");
+            UART_OutString("Reformatting card back default format");
             OutCRLF();
             
-            /* try to authenticate block 4 (first block of sector 1) using our key A */
-            if (!mifareClassic_authenticateBlock (uid, uidLength, 4, 0, keyA)) {
-                UART_OutString("Authentication failed.");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
-                delay(1500);              // PN532(no netflix) and chill before continuing :)
-                continue;
+            /* run through the card sector by sector */
+            for (sectorIndex = 0; sectorIndex < numOfSector; sectorIndex++) {
+                /* Step 1: Authenticate the current sector using key B 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF */
+                if (!mifareClassic_authenticateBlock (
+                                                      uid,
+                                                      uidLength,
+                                                      BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex),
+                                                      1,
+                                                      (uint8_t *)KEY_DEFAULT_KEYAB)
+                    ) {
+                    UART_OutString("Authentication failed for sector ");
+                    UART_OutUDec(sectorIndex);
+                    OutCRLF();
+                    UART_OutString("*******************************");
+                    OutCRLF();
+                    OutCRLF();
+                    delay(1500);              // PN532(no netflix) and chill before continuing :)
+                    continue;
+                }
+                
+                /* Step 2: Write to the other blocks */
+                if (sectorIndex == 16) {
+                    memset(blockBuffer, 0, sizeof(blockBuffer));
+                    if (!(mifareClassic_writeDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex)) - 3, blockBuffer))) {
+                        UART_OutString("Unable to write to sector ");
+                        UART_OutUDec(sectorIndex);
+                        OutCRLF();
+                        UART_OutString("*******************************");
+                        OutCRLF();
+                        OutCRLF();
+                        delay(1500);              // PN532(no netflix) and chill before continuing :)
+                        continue;
+                    }
+                }
+                if ((sectorIndex == 0) || (sectorIndex == 16)) {
+                    memset(blockBuffer, 0, sizeof(blockBuffer));
+                    if (!(mifareClassic_writeDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex)) - 2, blockBuffer))) {
+                        UART_OutString("Unable to write to sector ");
+                        UART_OutUDec(sectorIndex);
+                        OutCRLF();
+                        UART_OutString("*******************************");
+                        OutCRLF();
+                        OutCRLF();
+                        delay(1500);              // PN532(no netflix) and chill before continuing :)
+                        continue;
+                    }
+                }
+                else {
+                    memset(blockBuffer, 0, sizeof(blockBuffer));
+                    if (!(mifareClassic_writeDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex)) - 3, blockBuffer))) {
+                        UART_OutString("Unable to write to sector ");
+                        UART_OutUDec(sectorIndex);
+                        OutCRLF();
+                        UART_OutString("*******************************");
+                        OutCRLF();
+                        OutCRLF();
+                        delay(1500);              // PN532(no netflix) and chill before continuing :)
+                        continue;
+                    }
+                    if (!(mifareClassic_writeDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex)) - 2, blockBuffer))) {
+                        UART_OutString("Unable to write to sector ");
+                        UART_OutUDec(sectorIndex);
+                        OutCRLF();
+                        UART_OutString("*******************************");
+                        OutCRLF();
+                        OutCRLF();
+                        delay(1500);              // PN532(no netflix) and chill before continuing :)
+                        continue;
+                    }
+                }
+                memset(blockBuffer, 0, sizeof(blockBuffer));
+                if (!(mifareClassic_writeDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex)) - 1, blockBuffer))) {
+                    UART_OutString("Unable to write to sector ");
+                    UART_OutUDec(sectorIndex);
+                    OutCRLF();
+                    UART_OutString("*******************************");
+                    OutCRLF();
+                    OutCRLF();
+                    delay(1500);              // PN532(no netflix) and chill before continuing :)
+                    continue;
+                }
+                
+                /* Step 3: Reset both keys to 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF */
+                memcpy(blockBuffer, KEY_DEFAULT_KEYAB, sizeof(KEY_DEFAULT_KEYAB));
+                memcpy(blockBuffer + 6, blankAccessBits, sizeof(blankAccessBits));
+                blockBuffer[9] = 0x69;
+                memcpy(blockBuffer + 10, KEY_DEFAULT_KEYAB, sizeof(KEY_DEFAULT_KEYAB));
+                
+                /* Step 4: Write the trailer block */
+                if (!(mifareClassic_writeDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(sectorIndex)), blockBuffer))) {
+                    UART_OutString("Unable to write trailer block of sector ");
+                    UART_OutUDec(sectorIndex);
+                    OutCRLF();
+                    UART_OutString("*******************************");
+                    OutCRLF();
+                    OutCRLF();
+                    delay(1500);              // PN532(no netflix) and chill before continuing :)
+                    continue;
+                }
             }
-            UART_OutString("Writing URI to sector 1 as an NDEF Message");
-            OutCRLF();
             
-            /* check URI content length */
-            if (strlen(URIContent) > 38)
-            {
-                /*
-                 * the length is also checked in the writeNDEFURI function, but lets
-                 * warn users here just in case they change the value and it's bigger
-                 * than it should be
-                 */
-                UART_OutString("URI is too long ... must be less than 38 characters long");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
-                delay(1500);              // PN532(no netflix) and chill before continuing :)
-                continue;
-            }
-            
-            /* try to write an NDEF record to sector 1 */
-            if (mifareClassic_writeNDEFURI(1, URIPrefix, URIContent)) {
-                UART_OutString("NDEF URI Record written to sector 1");
-                OutCRLF();
-                UART_OutString("Job Done!");
-            }
-            else UART_OutString("NDEF Record creation failed! :(");
-            
+            UART_OutString("Reformatting Completed :)");
             OutCRLF();
             UART_OutString("*******************************");
             OutCRLF();
             OutCRLF();
             
             delay(1500);                  // PN532(no netflix) and chill before continuing :)
+            
         }
         else {
             UART_OutString("No card is found :( ");
