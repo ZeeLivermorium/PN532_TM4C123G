@@ -1,5 +1,5 @@
 /*!
- * @file MifareClassic_Format_NDEF.c
+ * @file MifareClassic_Reset_Default.c
  * @brief detect Mifare/ISO14443A card and serial output(UART) the UID.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.

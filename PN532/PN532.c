@@ -30,6 +30,17 @@
 
 /****************************************************
  *                                                  *
+ *                    Properties                    *
+ *                                                  *
+ ****************************************************/
+
+static uint8_t packet_buffer[255];      // packet buffer for data exchange
+//static uint8_t inListedTag;             // Tg number of inlisted tag.
+//static uint8_t _felicaIDm[8];           // FeliCa IDm (NFCID2)
+//static uint8_t _felicaPMm[8];           // FeliCa PMm (PAD)
+
+/****************************************************
+ *                                                  *
  *                   Initializer                    *
  *                                                  *
  ****************************************************/

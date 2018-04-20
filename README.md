@@ -32,7 +32,7 @@ Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level
 
 ## Projects
 
-### Mifare/ISO14443A Card Detection
+### ISO14443A(Mifare) Card Detection
 #### [Mifare_Detect](Projects/PN532_Mifare_Detect_4C123)
 > Detect an ISO14443A card and send its UID to serial output (UART via USB).
 
@@ -46,7 +46,7 @@ Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level
 #### [MifareClassic_Format_NDEF](Projects/PN532_MifareClassic_Format_NDEF_4C123)
 > Format a Mifare Classic card from default format to NDEF format with customized content.
 
-#### [MifareClassic_NDEF_Update](Projects/PN532_MifareClassic_NDEF_Update_4C123)
+#### [MifareClassic_Update_NDEF](Projects/PN532_MifareClassic_Update_NDEF_4C123)
 > Update the content in a NDEF formatted Mifare Classic card.
 
 #### [MifareClassic_Reset_Default](Projects/PN532_MifareClassic_Reset_Default_4C123)

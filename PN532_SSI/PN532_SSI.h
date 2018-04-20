@@ -43,14 +43,6 @@
 #define PN532_INVALID_FRAME                 (-3)
 #define PN532_NO_SPACE                      (-4)
 
-/****************************************************
- *                                                  *
- *                    Properties                    *
- *                                                  *
- ****************************************************/
-static uint8_t command;                 // variable to hold command sent
-static const uint8_t ACK_frame[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
-
 
 /****************************************************
  *                                                  *
