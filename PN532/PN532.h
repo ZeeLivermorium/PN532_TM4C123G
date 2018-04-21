@@ -395,6 +395,18 @@ static void delay(uint32_t N) {
         for(int msec = 10000; msec > 0; msec--);       // 1 time unit
 }
 
+/**
+ * PN532_dumpBlock
+ * ----------
+ * @param  data      Pointer to the data
+ * @param  numBytes  Data length in bytes
+ * ----------
+ * @brief  Prints a hexadecimal value in plain characters, along with
+ *         the char equivalents in the following format
+ *
+ *         00 00 00 00 00 00  ......
+ */
+void PN532_dumpBlock (const uint8_t *data, const uint32_t length);
 
 #endif
 

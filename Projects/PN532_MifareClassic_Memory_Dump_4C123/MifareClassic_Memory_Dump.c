@@ -124,7 +124,7 @@ int main(void) {
                     UART_OutUDec(blockIndex);
                     if(blockIndex < 10) UART_OutString("  ");
                     else UART_OutChar(' ');
-                    UART_OutBlock(data, 16);     // dump data
+                    PN532_dumpBlock(data, 16);     // dump data
                 } else {  // read fail
                     UART_OutString("Block ");
                     UART_OutUDec(blockIndex);

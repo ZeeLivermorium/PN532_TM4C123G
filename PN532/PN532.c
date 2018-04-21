@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "UART.h"
 #include "PN532.h"
 #include "PN532_Setting.h"
 
@@ -39,6 +40,37 @@ static uint8_t packet_buffer[255];      // packet buffer for data exchange
 //static uint8_t _felicaIDm[8];           // FeliCa IDm (NFCID2)
 //static uint8_t _felicaPMm[8];           // FeliCa PMm (PAD)
 
+/****************************************************
+ *                                                  *
+ *                 Helper Functions                 *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * PN532_dumpBlock
+ * ----------
+ * @param  data      Pointer to the data
+ * @param  numBytes  Data length in bytes
+ * ----------
+ * @brief  Prints a hexadecimal value in plain characters, along with
+ *         the char equivalents in the following format
+ *
+ *         00 00 00 00 00 00  ......
+ */
+void PN532_dumpBlock (const uint8_t *data, const uint32_t length) {
+    for (uint8_t i = 0; i < length; i++) {
+        if (data[i] < 0x10) UART_OutString(" 0");
+        else UART_OutChar(' ');
+        UART_OutUHex(data[i]);
+    }
+    UART_OutString("    ");
+    for (uint8_t i = 0; i < length; i++) {
+        char c = data[i];
+        if (c <= 0x1f || c > 0x7f) UART_OutChar('.');
+        else UART_OutChar(c);
+    }
+    OutCRLF();
+}
 
 /****************************************************
  *                                                  *
@@ -49,7 +81,7 @@ static uint8_t packet_buffer[255];      // packet buffer for data exchange
 /**
  * PN532_Init
  * ----------
- * Discription: initialize communication with PN532. Change settings in PN532_Setting.h.
+ * @brief: initialize communication with PN532. Change settings in PN532_Setting.h.
  */
 void PN532_Init(void) {
     #ifdef SSI
