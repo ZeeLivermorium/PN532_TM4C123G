@@ -397,5 +397,3 @@ static void delay(uint32_t N) {
 
 
 #endif
-
-
