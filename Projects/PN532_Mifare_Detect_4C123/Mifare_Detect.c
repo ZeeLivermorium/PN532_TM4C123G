@@ -1,6 +1,6 @@
 /*!
  * @file Mifare_Detect.c
- * @brief detect Mifare/ISO14443A card and serial output(UART) the UID.
+ * @brief Detect Mifare/ISO14443A card and serial output(UART) the UID.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git

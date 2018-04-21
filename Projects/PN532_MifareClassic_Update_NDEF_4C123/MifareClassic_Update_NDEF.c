@@ -1,6 +1,6 @@
 /*!
  * @file MifareClassic_Update_NDEF.c
- * @brief
+ * @brief Update URI Content of an NDEF formatted Mifare Classic card.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git

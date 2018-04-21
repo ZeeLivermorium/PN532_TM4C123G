@@ -1,6 +1,6 @@
 /*!
  * @file MifareClassic_Reset_Default.c
- * @brief detect Mifare/ISO14443A card and serial output(UART) the UID.
+ * @brief Reset an NDEF formatted Mifare Classic card back to default format.
  * ----------
  * Adapted code from elechouse PN532 driver for Arduino.
  * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git

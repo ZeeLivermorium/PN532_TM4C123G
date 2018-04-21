@@ -239,3 +239,18 @@ void OutCRLF(void){
     UART_OutChar(CR);
     UART_OutChar(LF);
 }
+
+void UART_OutBlock (const uint8_t *data, const uint32_t numBytes) {
+    for (uint8_t i = 0; i < numBytes; i++) {
+        if (data[i] < 0x10) UART_OutString(" 0");
+        else UART_OutChar(' ');
+        UART_OutUHex(data[i]);
+    }
+    UART_OutString("    ");
+    for (uint8_t i = 0; i < numBytes; i++) {
+        char c = data[i];
+        if (c <= 0x1f || c > 0x7f) UART_OutChar('.');
+        else UART_OutChar(c);
+    }
+    OutCRLF();
+}

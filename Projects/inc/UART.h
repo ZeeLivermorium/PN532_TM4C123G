@@ -111,3 +111,17 @@ void UART_InString(char *bufPt, uint16_t max);
 
 // output new line
 void OutCRLF(void);
+
+/**************************************************************************/
+/*!
+ @brief  Prints a hexadecimal value in plain characters, along with
+ the char equivalents in the following format
+ 
+ 00 00 00 00 00 00  ......
+ 
+ @param  data      Pointer to the data
+ @param  numBytes  Data length in bytes
+ */
+/**************************************************************************/
+void UART_OutBlock (const uint8_t *data, const uint32_t numBytes);
+
