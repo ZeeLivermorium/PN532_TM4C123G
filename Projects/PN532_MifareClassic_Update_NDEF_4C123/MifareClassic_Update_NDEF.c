@@ -36,7 +36,7 @@ uint8_t keyB[6] = { 0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7 };
 
 // Note: check out PN532.h for all NDEF prefixes.
 
-const char * URIContent = "zeelivermorium.com";   // for a url
+const char * URIContent = "github.com/ZeeLivermorium/PN532_4C123";   // for a url
 uint8_t URIPrefix = NDEF_URIPREFIX_HTTP_WWWDOT;
 
 //const char * URIContent = "mail@example.com";    // for an email address
