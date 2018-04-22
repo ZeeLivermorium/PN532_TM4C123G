@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "../inc/PLL.h"
-#include "../inc/UART.h"                         // for serial output
+#include "../inc/Serial.h"                       // for serial IO
 #include "../inc/PN532.h"
 //#include "../inc/LED.h"                          // for debugging LED indication
 
@@ -37,82 +37,56 @@ int main(void) {
     /*-- TM4C123 Init --*/
     PLL_Init(Bus80MHz);                   // bus clock at 80 MHz
     PN532_Init();                         // init and wake up PN532
-    UART_Init();                          // UART for serial output
-    //    LED_Init();                           // LED for debug
+    Serial_Init();                        // for serial IO
+//    LED_Init();                           // LED for debug
     
     /*-- PN532 Init --*/
     uint32_t firmwareVersion = PN532_getFirmwareVersion();
     
     if (!firmwareVersion) {               // if not able to read version number, quit
-        UART_OutString("Did not find PN532 board :(");
-        OutCRLF();
+        Serial_println("Did not find PN532 board :(");
         return 0;                         // exit
     }
     
     /* output firmware info */
-    OutCRLF();
-    UART_OutString("Found PN5");
-    UART_OutUHex((firmwareVersion >> 24) & 0xFF);
-    OutCRLF();
-    UART_OutString("Firmware Version ");
-    UART_OutUDec((firmwareVersion >> 16) & 0xFF);
-    UART_OutString(".");
-    UART_OutUDec((firmwareVersion >> 8) & 0xFF);
-    OutCRLF();
-    UART_OutString("-------------------------------");
-    OutCRLF();
+    Serial_println("");
+    Serial_println("Found PN5%x", (firmwareVersion >> 24) & 0xFF);
+    Serial_println("Firmware Version %u.%u", (firmwareVersion >> 16) & 0xFF, (firmwareVersion >> 8) & 0xFF);
+    Serial_println("-------------------------------");
+    
     SAMConfig();                          // configure board to read RFID tags
     
     /*-- loop --*/
     while(1) {
-        UART_OutString("Place a Mifare Classic card on the reader. Press [Enter] to continue ...");
-        OutCRLF();
-        UART_InString(serial_buffer, 0);  // wait for any key to be pressed
+        Serial_println("Place a Mifare Classic card on the reader. Press [Enter] to continue ...");
+        Serial_getString(serial_buffer, 0);  // wait for any key to be pressed
         
         if ( readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength) ) {
-            UART_OutString("Found a card :) ");
-            OutCRLF();
-            /* output uid length */
-            UART_OutString("UID Length: ");
-            UART_OutUDec(uidLength);
-            UART_OutString(" bytes.");
-            OutCRLF();
+            Serial_println("Found a card :) ");
+            Serial_println("UID Length: %u bytes.", uidLength); // output uid length
             /* output uid */
-            UART_OutString("UID: ");
-            for (uint8_t i = 0; i < uidLength; i++) {
-                UART_OutString(" 0x");
-                UART_OutUHex(uid[i]);
-            }
-            OutCRLF();
-            UART_OutString("-------------------------------");
-            OutCRLF();
+            Serial_print("UID: ");
+            for (uint8_t i=0; i < uidLength; i++) Serial_print(" 0x%x", uid[i]);
+            Serial_println("");
+            Serial_println("-------------------------------");
             
             /* make sure it's a Mifare Classic card */
             if(uidLength != 4) {          // not Mifare Classic
-                UART_OutString("This doesn't seem to be a Mifare Classic card :(");
-                OutCRLF();
+                Serial_println("This doesn't seem to be a Mifare Classic card :(");
                 delay(1500);              // PN532(no netflix) and chill before continuing :)
                 continue;
             }
-            UART_OutString("Found a Mifare Classic card :)");
-            OutCRLF();
+            Serial_println("Found a Mifare Classic card :)");
             
             /* go through all 16 sectors, authenticate then dump */
             for (int blockIndex = 0; blockIndex < 64; blockIndex++) {
                 /* check if this is a new block so that we can reauthenticate */
                 if (mifareClassic_isFirstBlock(blockIndex)) {
                     /* print sector number */
-                    UART_OutString("------------------------Sector ");
-                    UART_OutUDec(blockIndex/4);
-                    UART_OutString("-------------------------");
-                    OutCRLF();
+                    Serial_println("------------------------Sector %u-------------------------", blockIndex/4);
                     /* authenticate key B */
                     if (!mifareClassic_authenticateBlock (uid, uidLength, blockIndex, 1, keyB)) {
-                        UART_OutString("Authentication error: ");
-                        UART_OutString("Block ");
-                        UART_OutUDec(blockIndex);
-                        UART_OutString(" unable to authenticate");
-                        OutCRLF();
+                        Serial_println("Authentication error: Block %u unable to authenticate", blockIndex);
                         delay(1500);      // PN532(no netflix) and chill before continuing :)
                         continue;
                     }
@@ -120,25 +94,19 @@ int main(void) {
                 
                 /* read and dump the block  */
                 if (mifareClassic_readDataBlock(blockIndex, data)) { // read succeed
-                    UART_OutString("Block ");
-                    UART_OutUDec(blockIndex);
-                    if(blockIndex < 10) UART_OutString("  ");
-                    else UART_OutChar(' ');
+                    Serial_print("Block %u", blockIndex);
+                    if(blockIndex < 10) Serial_print("  ");
+                    else Serial_print(" ");
                     PN532_dumpBlock(data, 16);     // dump data
                 } else {  // read fail
-                    UART_OutString("Block ");
-                    UART_OutUDec(blockIndex);
-                    if(blockIndex < 10) UART_OutString("  ");
-                    else UART_OutChar(' ');
-                    UART_OutString(" unable to read this block");
-                    OutCRLF();
+                    Serial_print("Block %u", blockIndex);
+                    if(blockIndex < 10) Serial_print("  ");
+                    else Serial_print(" ");
+                    Serial_println(" unable to read this block");
                 }
             }
-            OutCRLF();
-        } else {
-            UART_OutString("No card is found :( ");
-            OutCRLF();
-        }
+            Serial_println("");
+        } else Serial_println("No card is found :( ");
     }
 }
 

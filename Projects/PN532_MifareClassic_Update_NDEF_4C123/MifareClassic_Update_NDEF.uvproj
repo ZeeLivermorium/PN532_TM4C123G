@@ -426,11 +426,6 @@
               <FilePath>..\inc\PN532_SSI.c</FilePath>
             </File>
             <File>
-              <FileName>UART.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\inc\UART.c</FilePath>
-            </File>
-            <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\inc\startup.s</FilePath>
@@ -439,6 +434,11 @@
               <FileName>MifareClassic_Update_NDEF.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\MifareClassic_Update_NDEF.c</FilePath>
+            </File>
+            <File>
+              <FileName>Serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\inc\Serial.c</FilePath>
             </File>
           </Files>
         </Group>

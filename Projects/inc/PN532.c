@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "UART.h"
+#include "Serial.h"
 #include "PN532.h"
 #include "PN532_Setting.h"
 
@@ -59,17 +59,17 @@ static uint8_t packet_buffer[255];      // packet buffer for data exchange
  */
 void PN532_dumpBlock (const uint8_t *data, const uint32_t length) {
     for (uint8_t i = 0; i < length; i++) {
-        if (data[i] < 0x10) UART_OutString(" 0");
-        else UART_OutChar(' ');
-        UART_OutUHex(data[i]);
+        if (data[i] < 0x10) Serial_print(" 0");
+        else Serial_print(" ");
+        Serial_print("%x", data[i]);
     }
-    UART_OutString("    ");
+    Serial_print("    ");
     for (uint8_t i = 0; i < length; i++) {
         char c = data[i];
-        if (c <= 0x1f || c > 0x7f) UART_OutChar('.');
-        else UART_OutChar(c);
+        if (c <= 0x1f || c > 0x7f) Serial_print(".");
+        else Serial_print("%c", c);
     }
-    OutCRLF();
+    Serial_println("");
 }
 
 /****************************************************

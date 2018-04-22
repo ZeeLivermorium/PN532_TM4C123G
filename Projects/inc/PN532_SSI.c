@@ -304,7 +304,7 @@ void PN532_SSI_Init (void) {
  ****************************************************/
 
 /**
- * SSI0_Read
+ * PN532_SSI_read
  * ----------
  * @return date read from PN532.
  */
@@ -333,7 +333,7 @@ static uint8_t PN532_SSI_read (void) {
 }
 
 /**
- * SSI0_write
+ * PN532_SSI_write
  * ----------
  * @param  data  data to be written.
  */

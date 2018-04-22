@@ -23,7 +23,7 @@
 #include <string.h>
 #include "../inc/PLL.h"
 #include "../inc/PN532.h"
-#include "../inc/UART.h"                         // for serial output
+#include "../inc/Serial.h"                        // for serial IO
 //#include "../inc/LED.h"                          // for debugging LED indication
 
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };         // buffer to store the returned UID
@@ -46,103 +46,74 @@ int main(void) {
     /*-- TM4C123 Init --*/
     PLL_Init(Bus80MHz);                   // bus clock at 80 MHz
     PN532_Init();                         // init and wake up PN532
-    UART_Init();                          // UART for serial output
-    //    LED_Init();                           // LED for debug
+    Serial_Init();                        // for serial IO
+//    LED_Init();                           // LED for debug
     
     /*-- PN532 Init --*/
     uint32_t firmwareVersion = PN532_getFirmwareVersion();
     
     if (!firmwareVersion) {               // if not able to read version number, quit
-        UART_OutString("Did not find PN532 board :(");
-        OutCRLF();
+        Serial_println("Did not find PN532 board :(");
         return 0;                         // exit
     }
     
     /* output firmware info */
-    OutCRLF();
-    UART_OutString("Found PN5");
-    UART_OutUHex((firmwareVersion >> 24) & 0xFF);
-    OutCRLF();
-    UART_OutString("Firmware Version ");
-    UART_OutUDec((firmwareVersion >> 16) & 0xFF);
-    UART_OutString(".");
-    UART_OutUDec((firmwareVersion >> 8) & 0xFF);
-    OutCRLF();
-    UART_OutString("-------------------------------");
-    OutCRLF();
-    SAMConfig();                          // configure board to read RFID tags
+    Serial_println("");
+    Serial_println("Found PN5%x", (firmwareVersion >> 24) & 0xFF);
+    Serial_println("Firmware Version %u.%u", (firmwareVersion >> 16) & 0xFF, (firmwareVersion >> 8) & 0xFF);
+    Serial_println("-------------------------------");
     
+    SAMConfig();                          // configure board to read RFID tags
     
     /*-- loop --*/
     while(1) {
-        UART_OutString("Place your Mifare Classic card on the reader to format with NDEF, ");
-        OutCRLF();
-        UART_OutString("and press [Enter] to continue ...");
-        OutCRLF();
-        UART_InString(serial_buffer, 0);  // wait for any key to be pressed
+        Serial_println("Place your Mifare Classic card on the reader to format with NDEF, ");
+        Serial_println("and press [Enter] to continue ...");
+        Serial_getString(serial_buffer, 0);  // wait for any key to be pressed
         
         if ( readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength) ) {
-            UART_OutString("Found a card :) ");
-            OutCRLF();
-            /* output uid length */
-            UART_OutString("UID Length: ");
-            UART_OutUDec(uidLength);
-            UART_OutString(" bytes.");
-            OutCRLF();
+            Serial_println("Found a card :) ");
+            Serial_println("UID Length: %u bytes.", uidLength); // output uid length
             /* output uid */
-            UART_OutString("UID: ");
-            for (uint8_t i = 0; i < uidLength; i++) {
-                UART_OutString(" 0x");
-                UART_OutUHex(uid[i]);
-            }
-            OutCRLF();
-            UART_OutString("-------------------------------");
-            OutCRLF();
+            Serial_print("UID: ");
+            for (uint8_t i=0; i < uidLength; i++) Serial_print(" 0x%x", uid[i]);
+            Serial_println("");
+            Serial_println("-------------------------------");
             
             /* make sure it's a Mifare Classic card */
             if(uidLength != 4) {          // not Mifare Classic
-                UART_OutString("This doesn't seem to be a Mifare Classic card :(");
-                OutCRLF();
+                Serial_println("This doesn't seem to be a Mifare Classic card :(");
                 delay(1500);              // PN532(no netflix) and chill before continuing :)
                 continue;
             }
-            UART_OutString("Found a Mifare Classic card :)");
-            OutCRLF();
+            Serial_println("Found a Mifare Classic card :)");
             
             /* try to format the card for NDEF data */
             if (!mifareClassic_authenticateBlock (uid, uidLength, 0, 0, keyA)) {
-                UART_OutString("Unable to authenticate block 0 to enable card formatting!");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
+                Serial_println("Unable to authenticate block 0 to enable card formatting!");
+                Serial_println("*******************************");
+                Serial_println("");
                 delay(1500);              // PN532(no netflix) and chill before continuing :)
                 continue;
             }
             if (!mifareClassic_formatNDEF()) {
-                UART_OutString("Unable to format the card for NDEF");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
+                Serial_println("Unable to format the card for NDEF");
+                Serial_println("*******************************");
+                Serial_println("");
                 delay(1500);              // PN532(no netflix) and chill before continuing :)
                 continue;
             }
-            UART_OutString("Card has been formatted for NDEF data using MAD1.");
-            OutCRLF();
+            Serial_println("Card has been formatted for NDEF data using MAD1.");
             
             /* try to authenticate block 4 (first block of sector 1) using our key A */
             if (!mifareClassic_authenticateBlock (uid, uidLength, 4, 0, keyA)) {
-                UART_OutString("Authentication failed.");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
+                Serial_println("Authentication failed.");
+                Serial_println("*******************************");
+                Serial_println("");
                 delay(1500);              // PN532(no netflix) and chill before continuing :)
                 continue;
             }
-            UART_OutString("Writing URI to sector 1 as an NDEF Message");
-            OutCRLF();
+            Serial_println("Writing URI to sector 1 as an NDEF Message");
             
             /* check URI content length */
             if (strlen(URIContent) > 38)
@@ -152,33 +123,24 @@ int main(void) {
                  * warn users here just in case they change the value and it's bigger
                  * than it should be
                  */
-                UART_OutString("URI content length is too long ... must be less than 38 characters");
-                OutCRLF();
-                UART_OutString("*******************************");
-                OutCRLF();
-                OutCRLF();
+                Serial_println("URI content length is too long ... must be less than 38 characters");
+                Serial_println("*******************************");
+                Serial_println("");
                 delay(1500);              // PN532(no netflix) and chill before continuing :)
                 continue;
             }
             
             /* try to write an NDEF record to sector 1 */
             if (mifareClassic_writeNDEFURI(1, URIPrefix, URIContent)) {
-                UART_OutString("NDEF URI Record written to sector 1");
-                OutCRLF();
-                UART_OutString("Job Done!");
+                Serial_println("NDEF URI Record written to sector 1");
+                Serial_println("Job Done!");
             }
-            else UART_OutString("NDEF Record creation failed! :(");
+            else Serial_println("NDEF Record creation failed! :(");
             
-            OutCRLF();
-            UART_OutString("*******************************");
-            OutCRLF();
-            OutCRLF();
-            
+            Serial_println("*******************************");
+            Serial_println("");
             delay(1500);                  // PN532(no netflix) and chill before continuing :)
         }
-        else {
-            UART_OutString("No card is found :( ");
-            OutCRLF();
-        }
+        else Serial_println("No card is found :( ");
     }
 }
