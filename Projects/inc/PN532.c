@@ -2,14 +2,12 @@
  * @file PN532.c
  * @brief PN532 Library.
  * ----------
- * Adapted code from elechouse PN532 driver for Arduino.
- * You can find the elechouse PN532 driver here:
- * https://github.com/elechouse/PN532.git
+ * Adapted code from Seeed Studio PN532 driver for Arduino.
+ * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
  * ----------
  * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
- * For future development and updates, please follow this repository:
- * https://github.com/ZeeLivermorium/PN532_TM4C123
+ * For future development and updates, please follow this repository: https://github.com/ZeeLivermorium/PN532_TM4C123
  * ----------
  * @author Zee Livermorium
  * @date Dec 25, 2017

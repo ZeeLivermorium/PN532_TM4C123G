@@ -2,8 +2,8 @@
  * @file PN532_SSI.C
  * @brief SSI communication implementation for PN532.
  * ----------
- * Adapted code from elechouse PN532 driver for Arduino.
- * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git
+ * Adapted code from Seeed Studio PN532 driver for Arduino.
+ * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
  * ----------
  * Low level SSI interface functions are inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers

@@ -1,9 +1,8 @@
 /*!
  * @file PN532_SSI.h
  * ----------
- * Adapted code from elechouse PN532 driver for Arduino.
- * You can find the elechouse PN532 driver here:
- * https://github.com/elechouse/PN532.git
+ * Adapted code from Seeed Studio PN532 driver for Arduino.
+ * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
  * ----------
  * For future development and updates, please follow this repository:
  * https://github.com/ZeeLivermorium/PN532_TM4C123

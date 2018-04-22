@@ -50,80 +50,6 @@ void Serial_Init(void){
 }
 
 /**
- * Serial_putChar
- * ----------
- * @param  data  an 8-bit ASCII character to be transferred.
- * ----------
- * @brief Output 8-bit to serial port.
- */
-void Serial_putChar(char data){
-    while((UART0_FR_R & UART_FR_TXFF) != 0);
-    UART0_DR_R = data;
-}
-
-/**
- * Serial_putUDec
- * ----------
- * @param  number  32-bit number to be transferred.
- * ----------
- * @brief Output a 32-bit number in unsigned decimal format.
- */
-void Serial_putUDec(uint32_t number) {
-    // This function uses recursion to convert decimal number
-    //   of unspecified length as an ASCII string
-    if(number >= 10){
-        Serial_putUDec(number/10);
-        number = number % 10;
-    }
-    Serial_putChar(number + '0'); /* n is between 0 and 9 */
-}
-
-/**
- * Serial_putUHex
- * ----------
- * @param  number  32-bit number to be transferred.
- * ----------
- * @brief Output a 32-bit number in unsigned hexadecimal format
- */
-void Serial_putUHex(uint32_t number){
-    /*
-     * This function uses recursion to convert the number of
-     * unspecified length as an ASCII string.
-     */
-    if(number >= 0x10){
-        Serial_putUHex(number/0x10);
-        Serial_putUHex(number%0x10);
-    } else{
-        if(number < 0xA)Serial_putChar(number + '0');
-        else Serial_putChar((number-0x0A) + 'A');
-    }
-}
-
-/**
- * Serial_putString
- * ----------
- * @param  str  pointer to a NULL-terminated string to be transferred.
- * ----------
- * @brief Output String (NULL termination).
- */
-void Serial_putString(char *str){
-    while(*str){
-        Serial_putChar(*str);
-        str++;
-    }
-}
-
-/**
- * Serial_putNewLine
- * ----------
- * @brief output new line.
- */
-void Serial_putNewLine(void){
-    Serial_putChar(CR);
-    Serial_putChar(LF);
-}
-
-/**
  * Serial_print
  * ----------
  * @brief a mini version of c print for serial.
@@ -147,7 +73,7 @@ void Serial_print(char* format, ...) {
                 case 'C':
                     Serial_putChar(va_arg(arg_list, int));
                     break;
-                /* signed integer */
+                /* signed decimal */
                 case 'd':
                     number = va_arg(arg_list, int32_t);
                     if (number < 0) {
@@ -164,7 +90,7 @@ void Serial_print(char* format, ...) {
                     }
                     Serial_putUDec(number);
                     break;
-                /* unsigned integer */
+                /* unsigned decimal */
                 case 'u':
                     Serial_putUDec(va_arg(arg_list, uint32_t));
                     break;
@@ -195,7 +121,7 @@ void Serial_print(char* format, ...) {
 /**
  * Serial_println
  * ----------
- * @brief a mini version of c print for serial.
+ * @brief a mini version of c println for serial.
  */
 void Serial_println(char* format, ...) {
     /* initializing arguments */
@@ -275,6 +201,18 @@ char Serial_getChar(void){
 }
 
 /**
+ * Serial_putChar
+ * ----------
+ * @param  data  an 8-bit ASCII character to be transferred.
+ * ----------
+ * @brief Output 8-bit to serial port.
+ */
+void Serial_putChar(char data){
+    while((UART0_FR_R & UART_FR_TXFF) != 0);
+    UART0_DR_R = data;
+}
+
+/**
  * Serial_getUDec
  * ----------
  * @return 32-bit unsigned number.
@@ -308,6 +246,23 @@ uint32_t Serial_getUDec(void){
         character = Serial_getChar();
     }
     return number;
+}
+
+/**
+ * Serial_putUDec
+ * ----------
+ * @param  number  32-bit number to be transferred.
+ * ----------
+ * @brief Output a 32-bit number in unsigned decimal format.
+ */
+void Serial_putUDec(uint32_t number) {
+    // This function uses recursion to convert decimal number
+    //   of unspecified length as an ASCII string
+    if(number >= 10){
+        Serial_putUDec(number/10);
+        number = number % 10;
+    }
+    Serial_putChar(number + '0'); /* n is between 0 and 9 */
 }
 
 /**
@@ -356,6 +311,27 @@ uint32_t Serial_getUHex (void) {
 }
 
 /**
+ * Serial_putUHex
+ * ----------
+ * @param  number  32-bit number to be transferred.
+ * ----------
+ * @brief Output a 32-bit number in unsigned hexadecimal format
+ */
+void Serial_putUHex(uint32_t number){
+    /*
+     * This function uses recursion to convert the number of
+     * unspecified length as an ASCII string.
+     */
+    if(number >= 0x10){
+        Serial_putUHex(number/0x10);
+        Serial_putUHex(number%0x10);
+    } else{
+        if(number < 0xA)Serial_putChar(number + '0');
+        else Serial_putChar((number-0x0A) + 'A');
+    }
+}
+
+/**
  * Serial_getString
  * ----------
  * @param  bufPt  pointer to store output.
@@ -393,6 +369,28 @@ void Serial_getString(char *bufPt, uint16_t max) {
     *bufPt = 0;
 }
 
+/**
+ * Serial_putString
+ * ----------
+ * @param  str  pointer to a NULL-terminated string to be transferred.
+ * ----------
+ * @brief Output String (NULL termination).
+ */
+void Serial_putString(char *str){
+    while(*str){
+        Serial_putChar(*str);
+        str++;
+    }
+}
 
+/**
+ * Serial_putNewLine
+ * ----------
+ * @brief output new line.
+ */
+void Serial_putNewLine(void){
+    Serial_putChar(CR);
+    Serial_putChar(LF);
+}
 
 

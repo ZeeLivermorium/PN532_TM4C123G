@@ -43,7 +43,7 @@ void Serial_print(char* format, ...);
 /**
  * Serial_println
  * ----------
- * @brief a mini version of c print for serial.
+ * @brief a mini version of c println for serial.
  */
 void Serial_println(char* format, ...);
 
@@ -55,6 +55,15 @@ void Serial_println(char* format, ...);
  * @brief Wait for new serial port input.
  */
 char Serial_getChar(void);
+
+/**
+ * Serial_putChar
+ * ----------
+ * @param  data  an 8-bit ASCII character to be transferred.
+ * ----------
+ * @brief Output 8-bit to serial port.
+ */
+void Serial_putChar(char data);
 
 /**
  * Serial_getUDec
@@ -71,6 +80,15 @@ char Serial_getChar(void);
 uint32_t Serial_getUDec(void);
 
 /**
+ * Serial_putUDec
+ * ----------
+ * @param  number  32-bit number to be transferred.
+ * ----------
+ * @brief Output a 32-bit number in unsigned decimal format.
+ */
+void Serial_putUDec(uint32_t number);
+
+/**
  * Serial_getUHex
  * ----------
  * @return 32-bit unsigned number.
@@ -83,8 +101,16 @@ uint32_t Serial_getUDec(void);
  *          If you enter a number above FFFFFFFF, it will return an incorrect value.
  *          Backspace will remove last digit typed.
  */
-uint32_t Serial_getUHex(void);
+uint32_t Serial_getUHex (void);
 
+/**
+ * Serial_putUHex
+ * ----------
+ * @param  number  32-bit number to be transferred.
+ * ----------
+ * @brief Output a 32-bit number in unsigned hexadecimal format
+ */
+void Serial_putUHex(uint32_t number);
 
 /**
  * Serial_getString
@@ -102,6 +128,22 @@ uint32_t Serial_getUHex(void);
  *        synchronization on RDRF
  */
 void Serial_getString(char *bufPt, uint16_t max);
+
+/**
+ * Serial_putString
+ * ----------
+ * @param  str  pointer to a NULL-terminated string to be transferred.
+ * ----------
+ * @brief Output String (NULL termination).
+ */
+void Serial_putString(char *str);
+
+/**
+ * Serial_putNewLine
+ * ----------
+ * @brief output new line.
+ */
+void Serial_putNewLine(void);
 
 
 #endif

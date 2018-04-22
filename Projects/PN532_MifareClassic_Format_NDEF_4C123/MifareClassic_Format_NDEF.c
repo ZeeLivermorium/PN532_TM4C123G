@@ -2,8 +2,8 @@
  * @file MifareClassic_Format_NDEF.c
  * @brief Format a Mifare Classic Card to NDEF format.
  * ----------
- * Adapted code from elechouse PN532 driver for Arduino.
- * You can find the elechouse PN532 driver here: https://github.com/elechouse/PN532.git
+ * Adapted code from Seeed Studio PN532 driver for Arduino.
+ * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
  * ----------
  * Inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
  * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
