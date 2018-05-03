@@ -97,7 +97,7 @@ int main(void) {
                     Serial_print("Block %u", blockIndex);
                     if(blockIndex < 10) Serial_print("  ");
                     else Serial_print(" ");
-                    PN532_dumpBlock(data, 16);     // dump data
+                    Serial_PutHexAndASCII(data, 16);     // dump data
                 } else {  // read fail
                     Serial_print("Block %u", blockIndex);
                     if(blockIndex < 10) Serial_print("  ");

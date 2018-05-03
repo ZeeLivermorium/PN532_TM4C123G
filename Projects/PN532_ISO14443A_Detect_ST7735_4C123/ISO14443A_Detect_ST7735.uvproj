@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>Mifare_Detect</TargetName>
+      <TargetName>ISO14443A_Detect_ST7735</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>Mifare_Detect</OutputName>
+          <OutputName>ISO14443A_Detect_ST7735</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -406,11 +406,6 @@
           <GroupName>Files</GroupName>
           <Files>
             <File>
-              <FileName>Mifare_Detect.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Mifare_Detect.c</FilePath>
-            </File>
-            <File>
               <FileName>LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\inc\LED.c</FilePath>
@@ -431,14 +426,19 @@
               <FilePath>..\inc\PN532_SSI.c</FilePath>
             </File>
             <File>
+              <FileName>ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\inc\ST7735.c</FilePath>
+            </File>
+            <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\inc\startup.s</FilePath>
             </File>
             <File>
-              <FileName>Serial.c</FileName>
+              <FileName>ISO14443A_Detect_ST7735.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\inc\Serial.c</FilePath>
+              <FilePath>.\ISO14443A_Detect_ST7735.c</FilePath>
             </File>
           </Files>
         </Group>

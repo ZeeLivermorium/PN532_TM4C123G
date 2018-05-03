@@ -15,7 +15,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "Serial.h"
 #include "PN532.h"
 #include "PN532_Setting.h"
 
@@ -38,37 +37,6 @@ static uint8_t packet_buffer[255];      // packet buffer for data exchange
 //static uint8_t _felicaIDm[8];           // FeliCa IDm (NFCID2)
 //static uint8_t _felicaPMm[8];           // FeliCa PMm (PAD)
 
-/****************************************************
- *                                                  *
- *                 Helper Functions                 *
- *                                                  *
- ****************************************************/
-
-/**
- * PN532_dumpBlock
- * ----------
- * @param  data      Pointer to the data
- * @param  numBytes  Data length in bytes
- * ----------
- * @brief  Prints a hexadecimal value in plain characters, along with
- *         the char equivalents in the following format
- *
- *         00 00 00 00 00 00  ......
- */
-void PN532_dumpBlock (const uint8_t *data, const uint32_t length) {
-    for (uint8_t i = 0; i < length; i++) {
-        if (data[i] < 0x10) Serial_print(" 0");
-        else Serial_print(" ");
-        Serial_print("%x", data[i]);
-    }
-    Serial_print("    ");
-    for (uint8_t i = 0; i < length; i++) {
-        char c = data[i];
-        if (c <= 0x1f || c > 0x7f) Serial_print(".");
-        else Serial_print("%c", c);
-    }
-    Serial_println("");
-}
 
 /****************************************************
  *                                                  *
@@ -481,7 +449,7 @@ uint8_t mifareUltralight_readPage (uint8_t page, uint8_t *buffer) {
 }
 
 /**
- * mifareUltralight_readPage
+ * mifareUltralight_writePage
  * ----------
  * @param  page     The page number to write into.  (0..63).
  * @param  buffer   The byte array that contains the data to write.

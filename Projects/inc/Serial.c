@@ -1,6 +1,6 @@
 /*!
  * @file Serial.c
- * @brief Serial I/O for TM4C123G using UART0
+ * @brief Serial I/O for TM4C123G using UART0.
  * ----------
  * Adapted code from UART.c from ValvanoWareTM4C123 by Dr. Jonathan Valvano.
  * You can find ValvanoWareTM4C123 at http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1
@@ -17,6 +17,12 @@
 
 // U0Rx (VCP receive) connected to PA0
 // U0Tx (VCP transmit) connected to PA1
+
+/****************************************************
+ *                                                  *
+ *                   Initializer                    *
+ *                                                  *
+ ****************************************************/
 
 /**
  * Serial_Init
@@ -47,6 +53,225 @@ void Serial_Init(void){
     UART0_CTL_R |= (UART_CTL_UARTEN |                      // enable UART0
                     UART_CTL_RXE    |                      // enable UART0 RX
                     UART_CTL_TXE);                         // enable UART0 TX
+}
+
+
+/****************************************************
+ *                                                  *
+ *                  Read Functions                  *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * Serial_getChar
+ * ----------
+ * @return ASCII code for key typed.
+ * ----------
+ * @brief Wait for new serial port input.
+ */
+char Serial_getChar(void){
+    while((UART0_FR_R & UART_FR_RXFE) != 0);
+    return((char)(UART0_DR_R & 0xFF));
+}
+
+/**
+ * Serial_getUDec
+ * ----------
+ * @return 32-bit unsigned number.
+ * ----------
+ * @brief InUDec accepts ASCII input in unsigned decimal format
+ *        and converts to a 32-bit unsigned number
+ *        valid range is 0 to 4294967295 (2^32-1).
+ * ----------
+ * @warning If you enter a number above 4294967295, it will return an incorrect value.
+ *          Backspace will remove last digit typed.
+ */
+uint32_t Serial_getUDec(void){
+    uint32_t number=0, length=0;
+    char character;
+    character = Serial_getChar();
+    while(character != CR){ // accepts until <enter> is typed
+        // The next line checks that the input is a digit, 0-9.
+        // If the character is not 0-9, it is ignored and not echoed
+        if((character>='0') && (character<='9')) {
+            number = 10*number+(character-'0');   // this line overflows if above 4294967295
+            length++;
+            Serial_putChar(character);
+        }
+        // If the input is a backspace, then the return number is
+        // changed and a backspace is outputted to the screen
+        else if((character==BS) && length){
+            number /= 10;
+            length--;
+            Serial_putChar(character);
+        }
+        character = Serial_getChar();
+    }
+    return number;
+}
+
+/**
+ * Serial_getUHex
+ * ----------
+ * @return 32-bit unsigned number.
+ * ----------
+ * @brief Accepts ASCII input in unsigned hexadecimal( format.
+ * ----------
+ * @warning No '$' or '0x' need be entered, just the 1 to 8 hex digits.
+ *          It will convert lower case a-f to uppercase A-F and converts to
+ *          a 16 bit unsigned number value range is 0 to FFFFFFFF.
+ *          If you enter a number above FFFFFFFF, it will return an incorrect value.
+ *          Backspace will remove last digit typed.
+ */
+uint32_t Serial_getUHex (void) {
+    uint32_t number=0, digit, length=0;
+    char character;
+    character = Serial_getChar();
+    while(character != CR){
+        digit = 0x10; // assume bad
+        if((character>='0') && (character<='9')){
+            digit = character-'0';
+        }
+        else if((character>='A') && (character<='F')){
+            digit = (character-'A')+0xA;
+        }
+        else if((character>='a') && (character<='f')){
+            digit = (character-'a')+0xA;
+        }
+        // If the character is not 0-9 or A-F, it is ignored and not echoed
+        if(digit <= 0xF){
+            number = number*0x10+digit;
+            length++;
+            Serial_putChar(character);
+        }
+        // Backspace outputted and return value changed if a backspace is inputted
+        else if((character==BS) && length){
+            number /= 0x10;
+            length--;
+            Serial_putChar(character);
+        }
+        character = Serial_getChar();
+    }
+    return number;
+}
+
+/**
+ * Serial_getString
+ * ----------
+ * @param  bufPt  pointer to store output.
+ * @param  max    size of buffer
+ * ----------
+ * @brief Accepts ASCII characters from the serial port
+ *        and adds them to a string until <enter> is typed
+ *        or until max length of the string is reached.
+ *        It echoes each character as it is inputted.
+ *        If a backspace is inputted, the string is modified
+ *        and the backspace is echoed. Terminates the string
+ *        with a null character uses busy-waiting
+ *        synchronization on RDRF
+ */
+void Serial_getString(char *bufPt, uint16_t max) {
+    int length=0;
+    char character;
+    character = Serial_getChar();
+    while(character != CR){
+        if(character == BS){
+            if(length){
+                bufPt--;
+                length--;
+                Serial_putChar(BS);
+            }
+        }
+        else if(length < max){
+            *bufPt = character;
+            bufPt++;
+            length++;
+            Serial_putChar(character);
+        }
+        character = Serial_getChar();
+    }
+    *bufPt = 0;
+}
+
+
+/****************************************************
+ *                                                  *
+ *                 Write Functions                  *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * Serial_putChar
+ * ----------
+ * @param  data  an 8-bit ASCII character to be transferred.
+ * ----------
+ * @brief Output 8-bit to serial port.
+ */
+void Serial_putChar(char data){
+    while((UART0_FR_R & UART_FR_TXFF) != 0);
+    UART0_DR_R = data;
+}
+
+/**
+ * Serial_putUDec
+ * ----------
+ * @param  number  32-bit number to be transferred.
+ * ----------
+ * @brief Output a 32-bit number in unsigned decimal format.
+ */
+void Serial_putUDec(uint32_t number) {
+    // This function uses recursion to convert decimal number
+    //   of unspecified length as an ASCII string
+    if(number >= 10){
+        Serial_putUDec(number/10);
+        number = number % 10;
+    }
+    Serial_putChar(number + '0'); /* n is between 0 and 9 */
+}
+
+/**
+ * Serial_putUHex
+ * ----------
+ * @param  number  32-bit number to be transferred.
+ * ----------
+ * @brief Output a 32-bit number in unsigned hexadecimal format
+ */
+void Serial_putUHex(uint32_t number){
+    /*
+     * This function uses recursion to convert the number of
+     * unspecified length as an ASCII string.
+     */
+    if(number >= 0x10){
+        Serial_putUHex(number/0x10);
+        Serial_putUHex(number%0x10);
+    } else{
+        if(number < 0xA)Serial_putChar(number + '0');
+        else Serial_putChar((number-0x0A) + 'A');
+    }
+}
+
+/**
+ * Serial_putString
+ * ----------
+ * @param  str  pointer to a NULL-terminated string to be transferred.
+ * ----------
+ * @brief Output String (NULL termination).
+ */
+void Serial_putString(char *str){
+    while(*str){
+        Serial_putChar(*str);
+        str++;
+    }
+}
+
+/**
+ * Serial_putNewLine
+ * ----------
+ * @brief output new line.
+ */
+void Serial_putNewLine(void){
+    Serial_putChar(CR);
+    Serial_putChar(LF);
 }
 
 /**
@@ -189,208 +414,28 @@ void Serial_println(char* format, ...) {
 }
 
 /**
- * Serial_getChar
+ * Serial_PutHexAndASCII
  * ----------
- * @return ASCII code for key typed.
+ * @param  data      Pointer to the data
+ * @param  numBytes  Data length in bytes
  * ----------
- * @brief Wait for new serial port input.
+ * @brief  Prints a hexadecimal value in plain characters, along with
+ *         the char equivalents in the following format
+ *
+ *         00 00 00 00 00 00  ......
  */
-char Serial_getChar(void){
-    while((UART0_FR_R & UART_FR_RXFE) != 0);
-    return((char)(UART0_DR_R & 0xFF));
-}
-
-/**
- * Serial_putChar
- * ----------
- * @param  data  an 8-bit ASCII character to be transferred.
- * ----------
- * @brief Output 8-bit to serial port.
- */
-void Serial_putChar(char data){
-    while((UART0_FR_R & UART_FR_TXFF) != 0);
-    UART0_DR_R = data;
-}
-
-/**
- * Serial_getUDec
- * ----------
- * @return 32-bit unsigned number.
- * ----------
- * @brief InUDec accepts ASCII input in unsigned decimal format
- *        and converts to a 32-bit unsigned number
- *        valid range is 0 to 4294967295 (2^32-1).
- * ----------
- * @warning If you enter a number above 4294967295, it will return an incorrect value.
- *          Backspace will remove last digit typed.
- */
-uint32_t Serial_getUDec(void){
-    uint32_t number=0, length=0;
-    char character;
-    character = Serial_getChar();
-    while(character != CR){ // accepts until <enter> is typed
-        // The next line checks that the input is a digit, 0-9.
-        // If the character is not 0-9, it is ignored and not echoed
-        if((character>='0') && (character<='9')) {
-            number = 10*number+(character-'0');   // this line overflows if above 4294967295
-            length++;
-            Serial_putChar(character);
-        }
-        // If the input is a backspace, then the return number is
-        // changed and a backspace is outputted to the screen
-        else if((character==BS) && length){
-            number /= 10;
-            length--;
-            Serial_putChar(character);
-        }
-        character = Serial_getChar();
+void Serial_PutHexAndASCII (const uint8_t *data, const uint32_t length) {
+    for (uint8_t i = 0; i < length; i++) {
+        if (data[i] < 0x10) Serial_print(" 0");
+        else Serial_print(" ");
+        Serial_print("%x", data[i]);
     }
-    return number;
-}
-
-/**
- * Serial_putUDec
- * ----------
- * @param  number  32-bit number to be transferred.
- * ----------
- * @brief Output a 32-bit number in unsigned decimal format.
- */
-void Serial_putUDec(uint32_t number) {
-    // This function uses recursion to convert decimal number
-    //   of unspecified length as an ASCII string
-    if(number >= 10){
-        Serial_putUDec(number/10);
-        number = number % 10;
+    Serial_print("    ");
+    for (uint8_t i = 0; i < length; i++) {
+        char c = data[i];
+        if (c <= 0x1f || c > 0x7f) Serial_print(".");
+        else Serial_print("%c", c);
     }
-    Serial_putChar(number + '0'); /* n is between 0 and 9 */
+    Serial_println("");
 }
-
-/**
- * Serial_getUHex
- * ----------
- * @return 32-bit unsigned number.
- * ----------
- * @brief Accepts ASCII input in unsigned hexadecimal( format.
- * ----------
- * @warning No '$' or '0x' need be entered, just the 1 to 8 hex digits.
- *          It will convert lower case a-f to uppercase A-F and converts to
- *          a 16 bit unsigned number value range is 0 to FFFFFFFF.
- *          If you enter a number above FFFFFFFF, it will return an incorrect value.
- *          Backspace will remove last digit typed.
- */
-uint32_t Serial_getUHex (void) {
-    uint32_t number=0, digit, length=0;
-    char character;
-    character = Serial_getChar();
-    while(character != CR){
-        digit = 0x10; // assume bad
-        if((character>='0') && (character<='9')){
-            digit = character-'0';
-        }
-        else if((character>='A') && (character<='F')){
-            digit = (character-'A')+0xA;
-        }
-        else if((character>='a') && (character<='f')){
-            digit = (character-'a')+0xA;
-        }
-        // If the character is not 0-9 or A-F, it is ignored and not echoed
-        if(digit <= 0xF){
-            number = number*0x10+digit;
-            length++;
-            Serial_putChar(character);
-        }
-        // Backspace outputted and return value changed if a backspace is inputted
-        else if((character==BS) && length){
-            number /= 0x10;
-            length--;
-            Serial_putChar(character);
-        }
-        character = Serial_getChar();
-    }
-    return number;
-}
-
-/**
- * Serial_putUHex
- * ----------
- * @param  number  32-bit number to be transferred.
- * ----------
- * @brief Output a 32-bit number in unsigned hexadecimal format
- */
-void Serial_putUHex(uint32_t number){
-    /*
-     * This function uses recursion to convert the number of
-     * unspecified length as an ASCII string.
-     */
-    if(number >= 0x10){
-        Serial_putUHex(number/0x10);
-        Serial_putUHex(number%0x10);
-    } else{
-        if(number < 0xA)Serial_putChar(number + '0');
-        else Serial_putChar((number-0x0A) + 'A');
-    }
-}
-
-/**
- * Serial_getString
- * ----------
- * @param  bufPt  pointer to store output.
- * @param  max    size of buffer
- * ----------
- * @brief Accepts ASCII characters from the serial port
- *        and adds them to a string until <enter> is typed
- *        or until max length of the string is reached.
- *        It echoes each character as it is inputted.
- *        If a backspace is inputted, the string is modified
- *        and the backspace is echoed. Terminates the string
- *        with a null character uses busy-waiting
- *        synchronization on RDRF
- */
-void Serial_getString(char *bufPt, uint16_t max) {
-    int length=0;
-    char character;
-    character = Serial_getChar();
-    while(character != CR){
-        if(character == BS){
-            if(length){
-                bufPt--;
-                length--;
-                Serial_putChar(BS);
-            }
-        }
-        else if(length < max){
-            *bufPt = character;
-            bufPt++;
-            length++;
-            Serial_putChar(character);
-        }
-        character = Serial_getChar();
-    }
-    *bufPt = 0;
-}
-
-/**
- * Serial_putString
- * ----------
- * @param  str  pointer to a NULL-terminated string to be transferred.
- * ----------
- * @brief Output String (NULL termination).
- */
-void Serial_putString(char *str){
-    while(*str){
-        Serial_putChar(*str);
-        str++;
-    }
-}
-
-/**
- * Serial_putNewLine
- * ----------
- * @brief output new line.
- */
-void Serial_putNewLine(void){
-    Serial_putChar(CR);
-    Serial_putChar(LF);
-}
-
 

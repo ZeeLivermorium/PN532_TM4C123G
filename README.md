@@ -32,11 +32,11 @@ Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level
 
 ## Projects
 
-### ISO14443A(Mifare) Card Detection
-#### [Mifare_Detect](Projects/PN532_Mifare_Detect_4C123)
+### ISO14443A Card Detection
+#### [ISO14443A_Detect](Projects/PN532_ISO14443A_Detect_4C123)
 > Detect an ISO14443A card and send its UID to serial output (UART via USB).
 
-#### [Mifare_Detect_ST7735](Projects/PN532_Mifare_Detect_ST7735_4C123)
+#### [ISO14443A_Detect_ST7735](Projects/PN532_ISO14443A_Detect_ST7735_4C123)
 > Detect an ISO14443A card and output its UID to an [ST7735](https://www.adafruit.com/product/358) LCD.
 
 ### Mifare Classic

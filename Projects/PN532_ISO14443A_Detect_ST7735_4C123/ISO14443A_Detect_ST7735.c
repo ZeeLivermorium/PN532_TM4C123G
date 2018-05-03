@@ -1,5 +1,5 @@
 /*!
- * @file Mifare_Detect_ST7735.c
+ * @file ISO14443A_Detect_ST7735.c
  * @brief Detect Mifare/ISO14443A card and display UID on ST7735.
  * ----------
  * Adapted code from Seeed Studio PN532 driver for Arduino.

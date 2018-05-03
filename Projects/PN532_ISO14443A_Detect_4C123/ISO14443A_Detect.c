@@ -1,5 +1,5 @@
 /*!
- * @file Mifare_Detect.c
+ * @file ISO14443A_Detect.c
  * @brief Detect Mifare/ISO14443A card and serial output(UART) the UID.
  * ----------
  * Adapted code from Seeed Studio PN532 driver for Arduino.
