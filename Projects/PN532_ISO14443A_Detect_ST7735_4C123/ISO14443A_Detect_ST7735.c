@@ -11,9 +11,14 @@
  * You can find his book at https://www.amazon.com/gp/product/1463590156/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1
  * You can find more of his work at http://users.ece.utexas.edu/~valvano/
  * ----------
- * NXP PN532 datasheet: https://www.nxp.com/docs/en/user-guide/141520.pdf
+ * NXP PN532 Data Sheet: https://www.nxp.com/docs/en/nxp/data-sheets/PN532_C1.pdf
+ * NXP PN532 User Manual: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * For future development and updates, please follow this repository: https://github.com/ZeeLivermorium/PN532_TM4C123
+ * ----------
+ * If you find any bug or problem, please create new issue or a pull request with a fix in the repository.
+ * Or you can simply email me about the problem or bug at zeelivermorium@gmail.com
+ * Much Appreciated!
  * ----------
  * @author Zee Livermorium
  * @date Apr 12, 2018

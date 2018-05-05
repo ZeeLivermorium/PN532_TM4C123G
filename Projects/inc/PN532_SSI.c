@@ -5,13 +5,14 @@
  * Adapted code from Seeed Studio PN532 driver for Arduino.
  * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
  * ----------
- * Low level SSI interface functions are inspired by examples in ValvanoWareTM4C123 by Dr. Jonathan Valvano
- * as well as his book Embedded Systems: Real-Time Interfacing to Arm Cortex-M Microcontrollers
- * You can find ValvanoWareTM4C123 at http://edx-org-utaustinx.s3.amazonaws.com/UT601x/ValvanoWareTM4C123.zip?dl=1
- * You can find his book at https://www.amazon.com/gp/product/1463590156/ref=oh_aui_detailpage_o05_s00?ie=UTF8&psc=1
- * You can find more of his work at http://users.ece.utexas.edu/~valvano/
+ * NXP PN532 Data Sheet: https://www.nxp.com/docs/en/nxp/data-sheets/PN532_C1.pdf
+ * NXP PN532 User Manual: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * For future development and updates, please follow this repository: https://github.com/ZeeLivermorium/PN532_TM4C123
+ * ----------
+ * If you find any bug or problem, please create new issue or a pull request with a fix in the repository.
+ * Or you can simply email me about the problem or bug at zeelivermorium@gmail.com
+ * Much Appreciated!
  * ----------
  * @author Zee Livermorium
  * @date Apr 14, 2018
@@ -304,11 +305,11 @@ void PN532_SSI_Init (void) {
  ****************************************************/
 
 /**
- * PN532_SSI_read
+ * read
  * ----------
  * @return date read from PN532.
  */
-static uint8_t PN532_SSI_read (void) {
+static uint8_t read (void) {
 #if defined SSI0
     while((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};     // wait until SSI0 not busy/transmit FIFO empty
     SSI0_DR_R = 0x00;                                     // data out, garbage, just for synchronization
@@ -333,11 +334,11 @@ static uint8_t PN532_SSI_read (void) {
 }
 
 /**
- * PN532_SSI_write
+ * write
  * ----------
  * @param  data  data to be written.
  */
-static void PN532_SSI_write(uint8_t data){
+static void write(uint8_t data){
 #if defined SSI0
     while ((SSI0_SR_R & SSI_SR_BSY) == SSI_SR_BSY) {};   // wait until SSI1 not busy/transmit FIFO empty
     SSI0_DR_R = reverseBitOrder(data);                   // LSB, write after reverse bit order
@@ -375,8 +376,8 @@ static void PN532_SSI_write(uint8_t data){
 static int isReadyForResponse(void) {
     SS_LOW();
     
-    PN532_SSI_write(PN532_SPI_STATREAD);               // write SPI starting command to PN532 module
-    uint8_t status = PN532_SSI_read();                 // read response from PN532
+    write(PN532_SPI_STATREAD);               // write SPI starting command to PN532 module
+    uint8_t status = read();                 // read response from PN532
     
     delay(1);                                          // give time for the last read to finish
     SS_HIGH();
@@ -410,9 +411,9 @@ static int8_t readACK(void) {
     SS_LOW();                                          // start
     delay(1);                                          // wake up PN532
     
-    PN532_SSI_write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
+    write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
     for (int i = 0; i < 6; i++)
-        ACK_buffer[i] = PN532_SSI_read();              // read ACK frame
+        ACK_buffer[i] = read();              // read ACK frame
     
     delay(1);                                          // give time for the last write to finish
     SS_HIGH();                                         // end
@@ -428,25 +429,25 @@ static void writeFrame(uint8_t *cmd, uint8_t cmd_length) {
     SS_LOW();
     delay(1);
     
-    PN532_SSI_write(PN532_SPI_DATAWRITE);              // tell PN532 the host about to write data
-    PN532_SSI_write(PN532_PREAMBLE);                   // write PREAMBLE
-    PN532_SSI_write(PN532_STARTCODE1);                 // write first byte of START CODE
-    PN532_SSI_write(PN532_STARTCODE2);                 // write second byte of START CODE
+    write(PN532_SPI_DATAWRITE);              // tell PN532 the host about to write data
+    write(PN532_PREAMBLE);                   // write PREAMBLE
+    write(PN532_STARTCODE1);                 // write first byte of START CODE
+    write(PN532_STARTCODE2);                 // write second byte of START CODE
     
     cmd_length++;                                      // length of data field: TFI + DATA
-    PN532_SSI_write(cmd_length);                       // write command length to LEN
-    PN532_SSI_write(~cmd_length + 1);                  // write the 2's complement of command length to LCS
-    PN532_SSI_write(PN532_HOSTTOPN532);                // a frame from the host controller to the PN532
+    write(cmd_length);                       // write command length to LEN
+    write(~cmd_length + 1);                  // write the 2's complement of command length to LCS
+    write(PN532_HOSTTOPN532);                // a frame from the host controller to the PN532
     
     uint8_t DCS = PN532_HOSTTOPN532;                   // data checksum, see datasheet how it is used
     
     for (uint8_t i = 0; i < cmd_length - 1; i++) {
-        PN532_SSI_write(cmd[i]);                       // write data byte
+        write(cmd[i]);                       // write data byte
         DCS += cmd[i];                                 // accumulate data checksum
     }
     
-    PN532_SSI_write(~DCS + 1);                         // write 2's complement of DCS
-    PN532_SSI_write(PN532_POSTAMBLE);                  // write POSTAMBLE
+    write(~DCS + 1);                         // write 2's complement of DCS
+    write(PN532_POSTAMBLE);                  // write POSTAMBLE
     
     delay(1);                                          // give time for the last write to finish
     SS_HIGH();
@@ -485,20 +486,20 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     SS_LOW();
     delay(1);
     
-    PN532_SSI_write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
+    write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
     
     /* read 1st (byte 0) to 3rd (byte 2) bytes */
-    if (PN532_SSI_read() != PN532_PREAMBLE   ||        // first byte should be PREAMBLE
-        PN532_SSI_read() != PN532_STARTCODE1 ||        // second byte should be STARTCODE1
-        PN532_SSI_read() != PN532_STARTCODE2           // third byte should be STARTCODE2
+    if (read() != PN532_PREAMBLE   ||        // first byte should be PREAMBLE
+        read() != PN532_STARTCODE1 ||        // second byte should be STARTCODE1
+        read() != PN532_STARTCODE2           // third byte should be STARTCODE2
         ) {
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_INVALID_FRAME;                    // return invalid frame code as result
     }
     
     /* read 4th and 5th bytes */
-    uint8_t LEN = PN532_SSI_read();                    // LEN: number of bytes in the data field
-    uint8_t LCS = PN532_SSI_read();                    // LCS: Packet Length Checksum
+    uint8_t LEN = read();                    // LEN: number of bytes in the data field
+    uint8_t LCS = read();                    // LCS: Packet Length Checksum
     if ((uint8_t)(LEN + LCS) != 0x00 ) {
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_INVALID_FRAME;                    // return invalid frame code as result
@@ -506,7 +507,7 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     
     /* read 6th and 7th bytes */
     uint8_t PD0 = command + 1;                         // PD0 is command code
-    if (PN532_PN532TOHOST != PN532_SSI_read() || PD0 != PN532_SSI_read()) {
+    if (PN532_PN532TOHOST != read() || PD0 != read()) {
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_INVALID_FRAME;                    // return invalid frame code as result
     }
@@ -514,9 +515,9 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     /* check buffer size before read actual data */
     LEN -= 2;                                          // subtract TFI and PD0(command) from DATA length
     if (LEN > data_length) {                           // if no enough space, dump bytes for synchronization
-        for (uint8_t i = 0; i < LEN; i++) PN532_SSI_read();  // dump data
-        PN532_SSI_read();                                    // dump DCS
-        PN532_SSI_read();                                    // dump POSTAMBLE
+        for (uint8_t i = 0; i < LEN; i++) read();  // dump data
+        read();                                    // dump DCS
+        read();                                    // dump POSTAMBLE
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_NO_SPACE;                         // return (buffer) no space error code as result
     }
@@ -524,19 +525,19 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     /* read actual data */
     uint8_t SUM = PN532_PN532TOHOST + PD0;             // SUM: TFI + DATA, DATA = PD0 + PD1 + ... + PDn
     for (uint8_t i = 0; i < LEN; i++) {
-        data_buffer[i] = PN532_SSI_read();             // get data
+        data_buffer[i] = read();             // get data
         SUM += data_buffer[i];                         // accumulate SUM
     }
     
     /* read data checksum byte */
-    uint8_t DCS = PN532_SSI_read();
+    uint8_t DCS = read();
     if ((uint8_t)(SUM + DCS) != 0) {
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_INVALID_FRAME;                    // proper frame should result in SUM + DCS = 0
     }
     
     /* read POSTAMBLE */
-    PN532_SSI_read();                                  // dump for synchronization
+    read();                                  // dump for synchronization
     
     delay(1);                                          // give time for the last write to finish
     SS_HIGH();
