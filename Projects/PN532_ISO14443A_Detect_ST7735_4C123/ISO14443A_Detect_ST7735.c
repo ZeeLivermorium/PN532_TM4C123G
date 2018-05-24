@@ -25,10 +25,9 @@
  */
 
 #include <stdint.h>
-#include "../inc/PLL.h"
-#include "../inc/PN532.h"
-#include "../inc/ST7735.h"
-// #include "../inc/LED.h"                   // for debugging LED indication
+#include "../../inc/PLL.h"
+#include "../../inc/ST7735.h"
+#include "../../PN532/PN532.h"
 
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
@@ -37,8 +36,9 @@ int main(void) {
     /*-- TM4C123 Init --*/
     PLL_Init(Bus80MHz);                   // bus clock at 80 MHz
     PN532_Init();
+    
+    /*-- ST7735 Init --*/
     ST7735_InitR(INITR_REDTAB);
-    // LED_Init();
     
     ST7735_SetCursor(0, 0);
     ST7735_FillScreen(ST7735_BLACK);

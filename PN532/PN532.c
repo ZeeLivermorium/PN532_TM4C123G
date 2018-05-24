@@ -21,14 +21,14 @@
 #include <stdint.h>
 #include <string.h>
 #include "PN532.h"
-#include "PN532_Setting.h"
+#include "../PN532_Setting.h"
 
 #if defined SSI
-#include "PN532_SSI.h"
+#include "../PN532_SSI/PN532_SSI.h"
 #elif defined I2C
-// maybe one day
+// #include "../PN532_I2C/PN532_I2C.h" // NOT SUPPORTED
 #elif defined UART
-// maybe some day
+// #include "../PN532_UART/PN532_UART.h" // NOT SUPPORTED
 #endif
 
 /****************************************************
@@ -475,6 +475,22 @@ uint8_t mifareUltralight_writePage (uint8_t page, uint8_t *buffer) {
     if (!writeCommand(packet_buffer, 8)) return 0;
     return readResponse(packet_buffer, sizeof(packet_buffer)) > 0;
 }
+
+
+/****************************************************
+ *                                                  *
+ *              NFC Data Exchange(P2P)              *
+ *                                                  *
+ ****************************************************/
+
+
+
+
+
+
+
+
+
 
 
 

@@ -406,39 +406,39 @@
           <GroupName>Files</GroupName>
           <Files>
             <File>
-              <FileName>LED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\inc\LED.c</FilePath>
-            </File>
-            <File>
-              <FileName>PLL.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\inc\PLL.c</FilePath>
-            </File>
-            <File>
-              <FileName>PN532.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\inc\PN532.c</FilePath>
-            </File>
-            <File>
-              <FileName>PN532_SSI.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\inc\PN532_SSI.c</FilePath>
-            </File>
-            <File>
-              <FileName>startup.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\inc\startup.s</FilePath>
-            </File>
-            <File>
               <FileName>MifareClassic_Update_NDEF.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\MifareClassic_Update_NDEF.c</FilePath>
             </File>
             <File>
+              <FileName>PN532.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\PN532\PN532.c</FilePath>
+            </File>
+            <File>
+              <FileName>PN532_SSI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\PN532_SSI\PN532_SSI.c</FilePath>
+            </File>
+            <File>
+              <FileName>LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\inc\LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>PLL.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\inc\PLL.c</FilePath>
+            </File>
+            <File>
               <FileName>Serial.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\inc\Serial.c</FilePath>
+              <FilePath>..\..\inc\Serial.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\inc\startup.s</FilePath>
             </File>
           </Files>
         </Group>

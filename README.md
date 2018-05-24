@@ -1,7 +1,7 @@
 # NXP PN532 NFC Library for TI TM4C123G MCU
 
 ## Introduction
-This repository contains the driver software for **NXP PN532 NFC controller** on **TI TM4C123G MCU** and some example projects based on the driver software, as well as other necessary [addtional files](Projects/inc). I also include Keil uVision project file (the uvproj file in each project folder) so that if you are using ARM Keil uVision with your TM4C123G, you can just double click on the uVision project file and load to your MCU. If you are using some other IDEs, you need to organize all the source files by yourself. Hope this repository can help you integrate NFC functionalities into your projects. 
+This repository contains the driver software for **NXP PN532 NFC controller** on **TI TM4C123G MCU** and some example projects based on the driver software, as well as other necessary [addtional files](inc). I also include Keil uVision project file (the uvproj file in each project folder) so that if you are using ARM Keil uVision with your TM4C123G, you can just double click on the uVision project file and load to your MCU. If you are using some other IDEs, you need to organize all the source files by yourself. Hope this repository can help you integrate NFC functionalities into your projects. 
 
 ## Documents
 #### [TI TM4C123G Data Sheet](http://www.ti.com/lit/ds/symlink/tm4c123gh6pm.pdf)
@@ -13,6 +13,8 @@ This repository contains the driver software for **NXP PN532 NFC controller** on
 ## Supported PN532 Module
 ### Elechouse PN532 NFC RFID Module
 ![Elechouse PN532 NFC RFID Module Version 3](Images/Elechouse_PN532_V3.png)
+### Adafruit PN532 NFC/RFID Controller Breakout Board
+![Adafruit PN532 NFC/RFID Controller Breakout Board - V1.6](Images/Adafruit_PN532.png)
 
 Other variations of PN532 boards are not tested for now (since I dont have them) but they should work, if wired correctly. 
 
@@ -22,7 +24,7 @@ Other variations of PN532 boards are not tested for now (since I dont have them)
 - [ ] UART/HSU: In development.
 
 ## API
-Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level R/W APIs, *writeCommand* and *readResponse*. Regardless what protocol you are using, the APIs called by [PN532.c](PN532/PN532.c) are the same. This is achived by the preprocessor setting in [PN532_Setting.h](PN532_Setting.h). The setting not only enables users to turn on only the certain comunication protocol (SSI, I2C and HSU) they want to use, but also prevents from including the code for unused protocols (when SSI is used, only SSI code is included). This approach significantly reduces code size loaded into the precious ROM space on TM4C123G and allows reusable R/W APIs across all protocols (since it does not include function declaration from unused protocol, different protocol can have the same API function signatures without causing error). The setting file used in the projects locates in the [inc](Projects/inc) folder in [Projects](Projects) directory, instead of the one in the root folder. 
+Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level R/W APIs, *writeCommand* and *readResponse*. Regardless what protocol you are using, the APIs called by [PN532.c](PN532/PN532.c) are the same. This is achived by the preprocessor setting in [PN532_Setting.h](PN532_Setting.h). The setting not only enables users to turn on only the certain comunication protocol (SSI, I2C and HSU) they want to use, but also prevents from including the code for unused protocols (when SSI is used, only SSI code is included). This approach significantly reduces code size loaded into the precious ROM space on TM4C123G and allows reusable R/W APIs across all protocols (since it does not include function declaration from unused protocol, different protocol can have the same API function signatures without causing error).
 
 ### API calling graph
 
@@ -65,9 +67,7 @@ Driver APIs please refer to [PN532.h](PN532/PN532.h). There are only 2 low level
 
 ## Problems and Bugs
 If you find any bug or problem, please create new issue or a pull request with a fix in the repository.
-
-Or you can simply email me about the problem or bug at zeelivermorium@gmail.com
-
+Or you can simply email me about the problem or bug at zeelivermorium@gmail.com .
 Much Appreciated!
 
 ## Copyright Note

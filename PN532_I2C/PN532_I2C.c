@@ -17,7 +17,7 @@
  * @date May 4, 2018
  */
 
-#include "PN532_Setting.h"
+#include "../PN532_Setting.h"
 
 #ifdef I2C
 

@@ -26,10 +26,9 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "../inc/PLL.h"
-#include "../inc/PN532.h"
-#include "../inc/Serial.h"                        // for serial IO
-//#include "../inc/LED.h"                          // for debugging LED indication
+#include "../../inc/PLL.h"
+#include "../../inc/Serial.h"
+#include "../../PN532/PN532.h"
 
 #define NR_SHORTSECTOR          (32)    // Number of short sectors on Mifare 1K/4K
 #define NR_LONGSECTOR           (8)     // Number of long sectors on Mifare 4K
@@ -61,8 +60,7 @@ int main(void) {
     /*-- TM4C123 Init --*/
     PLL_Init(Bus80MHz);                   // bus clock at 80 MHz
     PN532_Init();                         // init and wake up PN532
-    Serial_Init();                        // for serial IO
-//    LED_Init();                           // LED for debug
+    Serial_Init();                        // for serial I/O
     
     /*-- PN532 Init --*/
     uint32_t firmwareVersion = PN532_getFirmwareVersion();

@@ -19,7 +19,7 @@
  */
 
 
-#include "PN532_Setting.h"
+#include "../PN532_Setting.h"
 
 #ifdef SSI
 

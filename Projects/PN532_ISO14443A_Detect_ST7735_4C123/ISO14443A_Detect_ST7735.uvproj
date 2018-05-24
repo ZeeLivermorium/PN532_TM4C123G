@@ -406,39 +406,39 @@
           <GroupName>Files</GroupName>
           <Files>
             <File>
-              <FileName>LED.c</FileName>
+              <FileName>ISO14443A_Detect_ST7735.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\inc\LED.c</FilePath>
-            </File>
-            <File>
-              <FileName>PLL.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\inc\PLL.c</FilePath>
+              <FilePath>.\ISO14443A_Detect_ST7735.c</FilePath>
             </File>
             <File>
               <FileName>PN532.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\inc\PN532.c</FilePath>
+              <FilePath>..\..\PN532\PN532.c</FilePath>
             </File>
             <File>
-              <FileName>PN532_SSI.c</FileName>
+              <FileName>LED.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\inc\PN532_SSI.c</FilePath>
+              <FilePath>..\..\inc\LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>PLL.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\inc\PLL.c</FilePath>
             </File>
             <File>
               <FileName>ST7735.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\inc\ST7735.c</FilePath>
+              <FilePath>..\..\inc\ST7735.c</FilePath>
             </File>
             <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\inc\startup.s</FilePath>
+              <FilePath>..\..\inc\startup.s</FilePath>
             </File>
             <File>
-              <FileName>ISO14443A_Detect_ST7735.c</FileName>
+              <FileName>PN532_SSI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\ISO14443A_Detect_ST7735.c</FilePath>
+              <FilePath>..\..\PN532_SSI\PN532_SSI.c</FilePath>
             </File>
           </Files>
         </Group>
