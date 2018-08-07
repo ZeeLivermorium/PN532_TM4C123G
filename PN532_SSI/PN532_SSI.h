@@ -21,7 +21,7 @@
 #ifndef __PN532_SSI_H__
 #define __PN532_SSI_H__
 
-#include "../PN532_Setting.h"
+#include "PN532_Setting.h"
 
 #ifdef SSI
 

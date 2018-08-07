@@ -21,14 +21,14 @@
 #include <stdint.h>
 #include <string.h>
 #include "PN532.h"
-#include "../PN532_Setting.h"
+#include "PN532_Setting.h"
 
 #if defined SSI
-#include "../PN532_SSI/PN532_SSI.h"
+#include "PN532_SSI.h"
 #elif defined I2C
-// #include "../PN532_I2C/PN532_I2C.h" // NOT SUPPORTED
+// #include "PN532_I2C.h" // NOT SUPPORTED
 #elif defined UART
-// #include "../PN532_UART/PN532_UART.h" // NOT SUPPORTED
+// #include "PN532_UART.h" // NOT SUPPORTED
 #endif
 
 /****************************************************
@@ -246,7 +246,7 @@ int mifareClassic_isTrailerBlock (uint32_t uiBlock)
  * @param  keyNumber     key type to use during authentication (0 = MIFARE_CMD_AUTH_A, 1 = MIFARE_CMD_AUTH_B).
  * @param  keyData       Pointer to a byte array containing the 6 bytes key value.
  * ----------
- * @return 1 if everything executed properly, 0 for an error
+ * @return 1 if everything executed properly, 0 for an error.
  * ----------
  * @brief Tries to authenticate a block of memory on a MIFARE card using the INDATAEXCHANGE command.
  * ----------

@@ -362,7 +362,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>rvmdk PART_TM4C123GH6PM</Define>
               <Undefine></Undefine>
-              <IncludePath>..;..\..\..</IncludePath>
+              <IncludePath>../..;../../inc;../../PN532;../../PN532_SSI;../../PN532_I2C;../../PN532_UART</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

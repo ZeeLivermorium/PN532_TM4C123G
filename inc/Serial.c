@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include "Serial.h"
-#include "../inc/tm4c123gh6pm.h"
+#include "tm4c123gh6pm.h"
 
 // U0Rx (VCP receive) connected to PA0
 // U0Tx (VCP transmit) connected to PA1

@@ -26,9 +26,9 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "../../inc/PLL.h"
-#include "../../inc/Serial.h"
-#include "../../PN532/PN532.h"
+#include "PLL.h"
+#include "Serial.h"
+#include "PN532.h"
 
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };         // buffer to store the returned UID
 uint8_t uidLength;                               // length of the UID (4 or 7 bytes depending on ISO14443A card type)

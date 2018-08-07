@@ -10,7 +10,7 @@
  */
 
 #include <stdint.h>
-#include "../inc/tm4c123gh6pm.h"          // put this in the right path accordingly
+#include "tm4c123gh6pm.h"          // put this in the right path accordingly
 
 void LED_Init(void);
 

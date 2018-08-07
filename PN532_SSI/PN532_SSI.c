@@ -19,14 +19,14 @@
  */
 
 
-#include "../PN532_Setting.h"
+#include "PN532_Setting.h"
 
 #ifdef SSI
 
 #include <stdint.h>
 #include <string.h>
 #include "PN532_SSI.h"
-#include "../inc/tm4c123gh6pm.h"
+#include "tm4c123gh6pm.h"
 
 /*
  *  SSI0 A Conncection | SSI1 D Conncection | SSI1 F Conncection | SSI2 B Conncection | SSI3 D Conncection
@@ -379,10 +379,10 @@ static int isReadyForResponse(void) {
     write(PN532_SPI_STATREAD);               // write SPI starting command to PN532 module
     uint8_t status = read();                 // read response from PN532
     
-    delay(1);                                          // give time for the last read to finish
+    delay(1);                                // give time for the last read to finish
     SS_HIGH();
     
-    return status == PN532_SPI_READY;                  // check if PN532 is ready and return the result
+    return status == PN532_SPI_READY;        // check if PN532 is ready and return the result
 }
 
 /**
@@ -406,19 +406,19 @@ static int waitToBeReadyForResponse(uint16_t wait_time) {
  * see NXP PN532 data sheet page 30 for ACK frame
  */
 static int8_t readACK(void) {
-    uint8_t ACK_buffer[6];                             // buffer for ACK signal
+    uint8_t ACK_buffer[6];                   // buffer for ACK signal
     
-    SS_LOW();                                          // start
-    delay(1);                                          // wake up PN532
+    SS_LOW();                                // start
+    delay(1);                                // wake up PN532
     
     write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
     for (int i = 0; i < 6; i++)
         ACK_buffer[i] = read();              // read ACK frame
     
-    delay(1);                                          // give time for the last write to finish
-    SS_HIGH();                                         // end
+    delay(1);                                // give time for the last write to finish
+    SS_HIGH();                               // end
     
-    return memcmp(ACK_buffer, ACK_frame, 6);           // check ACK frame and return
+    return memcmp(ACK_buffer, ACK_frame, 6); // check ACK frame and return
 }
 
 /**
@@ -434,22 +434,22 @@ static void writeFrame(uint8_t *cmd, uint8_t cmd_length) {
     write(PN532_STARTCODE1);                 // write first byte of START CODE
     write(PN532_STARTCODE2);                 // write second byte of START CODE
     
-    cmd_length++;                                      // length of data field: TFI + DATA
+    cmd_length++;                            // length of data field: TFI + DATA
     write(cmd_length);                       // write command length to LEN
     write(~cmd_length + 1);                  // write the 2's complement of command length to LCS
     write(PN532_HOSTTOPN532);                // a frame from the host controller to the PN532
     
-    uint8_t DCS = PN532_HOSTTOPN532;                   // data checksum, see datasheet how it is used
+    uint8_t DCS = PN532_HOSTTOPN532;         // data checksum, see datasheet how it is used
     
     for (uint8_t i = 0; i < cmd_length - 1; i++) {
         write(cmd[i]);                       // write data byte
-        DCS += cmd[i];                                 // accumulate data checksum
+        DCS += cmd[i];                       // accumulate data checksum
     }
     
     write(~DCS + 1);                         // write 2's complement of DCS
     write(PN532_POSTAMBLE);                  // write POSTAMBLE
     
-    delay(1);                                          // give time for the last write to finish
+    delay(1);                                // give time for the last write to finish
     SS_HIGH();
 }
 
@@ -486,20 +486,20 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     SS_LOW();
     delay(1);
     
-    write(PN532_SPI_DATAREAD);               // tell PN532 the host about to read data
+    write(PN532_SPI_DATAREAD);                         // tell PN532 the host about to read data
     
     /* read 1st (byte 0) to 3rd (byte 2) bytes */
-    if (read() != PN532_PREAMBLE   ||        // first byte should be PREAMBLE
-        read() != PN532_STARTCODE1 ||        // second byte should be STARTCODE1
-        read() != PN532_STARTCODE2           // third byte should be STARTCODE2
+    if (read() != PN532_PREAMBLE   ||                  // first byte should be PREAMBLE
+        read() != PN532_STARTCODE1 ||                  // second byte should be STARTCODE1
+        read() != PN532_STARTCODE2                     // third byte should be STARTCODE2
         ) {
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_INVALID_FRAME;                    // return invalid frame code as result
     }
     
     /* read 4th and 5th bytes */
-    uint8_t LEN = read();                    // LEN: number of bytes in the data field
-    uint8_t LCS = read();                    // LCS: Packet Length Checksum
+    uint8_t LEN = read();                              // LEN: number of bytes in the data field
+    uint8_t LCS = read();                              // LCS: Packet Length Checksum
     if ((uint8_t)(LEN + LCS) != 0x00 ) {
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_INVALID_FRAME;                    // return invalid frame code as result
@@ -515,9 +515,9 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     /* check buffer size before read actual data */
     LEN -= 2;                                          // subtract TFI and PD0(command) from DATA length
     if (LEN > data_length) {                           // if no enough space, dump bytes for synchronization
-        for (uint8_t i = 0; i < LEN; i++) read();  // dump data
-        read();                                    // dump DCS
-        read();                                    // dump POSTAMBLE
+        for (uint8_t i = 0; i < LEN; i++) read();      // dump data
+        read();                                        // dump DCS
+        read();                                        // dump POSTAMBLE
         SS_HIGH();                                     // pull SS high since we are exiting this function
         return PN532_NO_SPACE;                         // return (buffer) no space error code as result
     }
@@ -525,7 +525,7 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     /* read actual data */
     uint8_t SUM = PN532_PN532TOHOST + PD0;             // SUM: TFI + DATA, DATA = PD0 + PD1 + ... + PDn
     for (uint8_t i = 0; i < LEN; i++) {
-        data_buffer[i] = read();             // get data
+        data_buffer[i] = read();                       // get data
         SUM += data_buffer[i];                         // accumulate SUM
     }
     
@@ -537,7 +537,7 @@ int16_t readResponse(uint8_t *data_buffer, uint8_t data_length) {
     }
     
     /* read POSTAMBLE */
-    read();                                  // dump for synchronization
+    read();                                            // dump for synchronization
     
     delay(1);                                          // give time for the last write to finish
     SS_HIGH();

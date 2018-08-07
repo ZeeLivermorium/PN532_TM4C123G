@@ -26,9 +26,9 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "../../inc/PLL.h"
-#include "../../inc/Serial.h"
-#include "../../PN532/PN532.h"
+#include "PLL.h"
+#include "Serial.h"
+#include "PN532.h"
 
 #define NR_SHORTSECTOR          (32)    // Number of short sectors on Mifare 1K/4K
 #define NR_LONGSECTOR           (8)     // Number of long sectors on Mifare 4K
