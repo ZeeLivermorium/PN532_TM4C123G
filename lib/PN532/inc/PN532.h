@@ -1,5 +1,5 @@
 /*!
- * @file PN532.h
+ * @file  PN532.h
  * @brief NXP PN532 NFC Library.
  * ----------
  * Adapted code from Seeed Studio PN532 driver for Arduino.
@@ -15,7 +15,7 @@
  * Much Appreciated!
  * ----------
  * @author Zee Livermorium
- * @date Dec 25, 2017
+ * @date   Dec 25, 2017
  */
 
 #ifndef __PN532_H__
@@ -36,13 +36,6 @@
 #define PN532_GPIO_P33                      (3)
 #define PN532_GPIO_P34                      (4)
 #define PN532_GPIO_P35                      (5)
-
-/* I2C */
-#define PN532_I2C_ADDRESS                   (0x48 >> 1)
-#define PN532_I2C_READBIT                   (0x01)
-#define PN532_I2C_BUSY                      (0x00)
-#define PN532_I2C_READY                     (0x01)
-#define PN532_I2C_READYTIMEOUT              (20)
 
 /* PN532 Commands */
 #define PN532_COMMAND_DIAGNOSE              (0x00)
@@ -181,7 +174,7 @@ void PN532_Init(void);
 uint32_t PN532_getFirmwareVersion(void);
 
 /**
- * SAMConfig
+ * PN532_SAMConfiguration
  * ----------
  * @return -1 for an error.
  * ----------
@@ -189,11 +182,77 @@ uint32_t PN532_getFirmwareVersion(void);
  * ----------
  * Data Sheet: section 7.2.10 SAMConfiguration (page 89).
  */
-int8_t SAMConfig(void);
+int8_t PN532_SAMConfiguration(void);
 
-// int writeGPIO(uint8_t pinstate);
+/**
+ * PN532_inJumpForDEP
+ * ----------
+ * @return 0 for an error.
+ * ----------
+ * @brief  This command is used by a host controller to activate a target using either
+ *         active or passive communication mode.
+ * ----------
+ * @note   details in user manual section 7.3.3 InJumpForDEP.
+ */
+uint8_t PN532_inJumpForDEP(void);
 
-// uint8_t readGPIO(void);
+/**
+ * PN532_inRelease
+ * ----------
+ * @param  relevant_target  targets to be released.
+ * ----------
+ * @return specific PN532 error code.
+ * ----------
+ * @brief  to release the target(s).
+ * ----------
+ * @note   details in user manual section 7.3.11 InRelease.
+ */
+int16_t PN532_inRelease(const uint8_t relevant_target);
+
+/**
+ * PN532_tgInitAsTarget
+ * ----------
+ * @param  cmd         command to be sent.
+ * @param  cmd_length  length of whole command.
+ * @param  wait_time   wait time for PN532 to respond to this particular command.
+ * ----------
+ * @return specific PN532 error code.
+ * ----------
+ * @brief  to configure the PN532 as target.
+ * ----------
+ * @note   details in user manual section 7.3.14 TgInitAsTarget.
+ */
+int8_t PN532_tgInitAsTarget(uint8_t* cmd, uint8_t cmd_length, uint16_t wait_time);
+
+/**
+ * PN532_tgGetData
+ * ----------
+ * @param  data_buff    Container to obtain data.
+ * @param  buff_length  Length of data to be obtained.
+ * ----------
+ * @return specific PN532 error code.
+ * ----------
+ * @brief  This command is used in case of the PN532 configured as target for Data Exchange Protocol (DEP)
+ *         or for ISO/IEC14443-4 protocol when PN532 is activated in ISO/IEC14443-4 PICC emulated.
+ * ----------
+ * @note   details in user manual section 7.3.16 TgGetData.
+ */
+int16_t PN532_tgGetData(uint8_t *data_buff, uint8_t buff_length);
+
+/**
+ * PN532_tgSetData
+ * ----------
+ * @param  data    Container for data to be sent.
+ * @param  length  Length of data to be sent.
+ * ----------
+ * @return 0 for error, 1 for success.
+ * ----------
+ * @brief  This command is used in case of the PN532 configured as target for Data Exchange Protocol (DEP)
+ *         or for ISO/IEC14443-4 protocol when PN532 is activated in ISO/IEC14443-4 PICC emulated.
+ * ----------
+ * @note   details in user manual section 7.3.17 TgSetData.
+ */
+uint8_t PN532_tgSetData(const uint8_t* data, uint8_t length);
 
 /**
  * setPassiveActivationRetries
@@ -207,35 +266,6 @@ int8_t SAMConfig(void);
  * Data Sheet: section 7.3.1 RFConfiguration (page 101).
  */
 int8_t setPassiveActivationRetries(uint8_t maxRetries);
-
-/****************************************************
- *                                                  *
- *                 PN532 as A Target                *
- *                                                  *
- ****************************************************/
-
-///**
-// * @brief    Init PN532 as a target
-// * @param    timeout max time to wait, 0 means no timeout
-// * @return   > 0     success
-// *           = 0     timeout
-// *           < 0     failed
-// */
-//int8_t tgInitAsTarget(uint16_t timeout = 0);
-//int8_t tgInitAsTarget(const uint8_t* command, const uint8_t len, const uint16_t timeout = 0);
-
-//int16_t tgGetData(uint8_t *buf, uint8_t len);
-//bool tgSetData(const uint8_t *header, uint8_t hlen, const uint8_t *body = 0, uint8_t blen = 0);
-
-//int16_t inRelease(const uint8_t relevantTarget = 0);
-
-
-
-
-
-
-
-
 
 
 /****************************************************
@@ -420,6 +450,58 @@ uint8_t mifareClassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier,
 
 /****************************************************
  *                                                  *
+ *                  P2P Functions                   *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * P2PInitiatorInit
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Initiate a PN532 as a P2P initiator.
+ */
+uint8_t P2PInitiatorInit (void);
+
+/**
+ * P2PInitiatorTxRx
+ * ----------
+ * @param  tx_buff          Buffer for data to be transfered.
+ * @param  tx_buff_length   Length of bytes for data to be transfered.
+ * @param  rx_buff          Buffer for data to be recieved.
+ * ----------
+ * @return 0 for error or length of data obtained if everything goes properly.
+ * ----------
+ * @brief  Let Initiator exchange data with a target.
+ */
+uint8_t P2PInitiatorTxRx (uint8_t* tx_buff, uint8_t tx_buff_length, uint8_t* rx_buff);
+
+/**
+ * P2PTargetInit
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error
+ * ----------
+ * @brief Initiate a PN532 as a P2P Target.
+ */
+uint8_t P2PTargetInit (void);
+
+/**
+ * P2PTargetRxTx
+ * ----------
+ * @param  tx_buff          Buffer for data to be transfered.
+ * @param  tx_buff_length   Length of bytes for data to be transfered.
+ * @param  rx_buff          Buffer for data to be recieved.
+ * @param  rx_buff_length   Length of bytes for data to be recieved.
+ * ----------
+ * @return 0 for error or length of data obtained if everything goes properly.
+ * ----------
+ * @brief  Let a target exchange data with an Initiator.
+ */
+uint16_t P2PTargetRxTx (uint8_t* tx_buff, uint8_t tx_buff_length, uint8_t* rx_buff, uint8_t rx_buff_length);
+
+
+/****************************************************
+ *                                                  *
  *                 Helper Functions                 *
  *                                                  *
  ****************************************************/
@@ -429,10 +511,7 @@ uint8_t mifareClassic_writeNDEFURI (uint8_t sectorNumber, uint8_t uriIdentifier,
  * ----------
  * Description: delay N time unit
  */
-static void delay(uint32_t N) {
-    for(int n = 0; n < N; n++)                         // N time unitss
-        for(int msec = 10000; msec > 0; msec--);       // 1 time unit
-}
+void delay(uint32_t N);
 
 #endif
 

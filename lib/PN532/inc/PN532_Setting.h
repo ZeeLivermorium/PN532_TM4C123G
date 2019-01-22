@@ -9,7 +9,6 @@
 #ifndef __PN532_SETTING_H__
 #define __PN532_SETTING_H__
 
-
 /*-- Protocol Selection --*/
 #if 1           // set this to 1 to use SSI
     #define PN532_SSI

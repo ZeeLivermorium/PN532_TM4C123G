@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "Serial.h"
 #include "PN532.h"
 #include "PN532_Setting.h"
 
@@ -42,6 +43,22 @@ static uint8_t packet_buffer[255];      // packet buffer for data exchange
 //static uint8_t _felicaIDm[8];           // FeliCa IDm (NFCID2)
 //static uint8_t _felicaPMm[8];           // FeliCa PMm (PAD)
 
+/****************************************************
+ *                                                  *
+ *                 Helper Functions                 *
+ *                                                  *
+ ****************************************************/
+
+/**
+ * delay
+ * ----------
+ * Description: delay N time unit
+ */
+void delay(uint32_t N) {
+    for(int n = 0; n < N; n++)                         // N time unitss
+        for(int msec = 10000; msec > 0; msec--);       // 1 time unit
+}
+
 
 /****************************************************
  *                                                  *
@@ -55,19 +72,19 @@ static uint8_t packet_buffer[255];      // packet buffer for data exchange
  * @brief: initialize communication with PN532. Change settings in PN532_Setting.h.
  */
 void PN532_Init(void) {
-    #ifdef PN532_SSI
+#ifdef PN532_SSI
     PN532_SSI_Init();
-    #elif defined PN532_I2C
+#elif defined PN532_I2C
     // PN532_I2C_Init(); NOT SUPPORTED
-    #elif defined PN532_UART
+#elif defined PN532_UART
     // PN532_UART_Init(); NOT SUPPORTED
-    #endif
+#endif
 }
 
 
 /****************************************************
  *                                                  *
- *                Generic Functions                 *
+ *                  PN532 Commands                  *
  *                                                  *
  ****************************************************/
 
@@ -76,7 +93,7 @@ void PN532_Init(void) {
  * ----------
  * @return 32-bit firmware version number for PN532 or 0 for an error.
  * ----------
- * Data Sheet: section 7.2.2 GetFirmwareVersion (page 73).
+ * @note   details in user manual section 7.2.2 GetFirmwareVersion.
  */
 uint32_t PN532_getFirmwareVersion(void) {
     /*-- prepare command --*/
@@ -100,15 +117,15 @@ uint32_t PN532_getFirmwareVersion(void) {
 }
 
 /**
- * SAMConfig
+ * PN532_SAMConfiguration
  * ----------
  * @return -1 for an error.
  * ----------
- * @brief Configures the SAM (Secure Access Module).
+ * @brief  Configures the SAM (Secure Access Module).
  * ----------
- * Data Sheet: section 7.2.10 SAMConfiguration (page 89).
+ * @note   details in user manual section 7.2.10 SAMConfiguration.
  */
-int8_t SAMConfig(void) {
+int8_t PN532_SAMConfiguration(void) {
     /*-- prepare command --*/
     packet_buffer[0] = PN532_COMMAND_SAMCONFIGURATION;
     packet_buffer[1] = 0x01;                           // normal mode;
@@ -119,6 +136,149 @@ int8_t SAMConfig(void) {
     if (!writeCommand(packet_buffer, 4)) return -1;
     return readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K);  // return response status code
 }
+
+/**
+ * PN532_inJumpForDEP
+ * ----------
+ * @return 0 for an error.
+ * ----------
+ * @brief  This command is used by a host controller to activate a target using either
+ *         active or passive communication mode.
+ * ----------
+ * @note   details in user manual section 7.3.3 InJumpForDEP.
+ */
+uint8_t PN532_inJumpForDEP() {
+    /** avoid resend command */
+    packet_buffer[0] = PN532_COMMAND_INJUMPFORDEP;
+    packet_buffer[1] = 0x01;      // avtive mode
+    packet_buffer[2] = 0x02;      // 424Kbps
+    packet_buffer[3] = 0x01;      // NFCID3i
+    
+//    packet_buffer[4] = 0x00;
+//    packet_buffer[5] = 0xFF;
+//    packet_buffer[6] = 0xFF;
+//    packet_buffer[7] = 0x00;
+//    packet_buffer[8] = 0x00;
+    
+    if (!writeCommand(packet_buffer, 4))
+        return 0;   // return 0 for error
+    
+    return readResponse(packet_buffer, 25, PN532_WAITTIME_1K);
+}
+
+/**
+ * PN532_inRelease
+ * ----------
+ * @param  relevant_target  targets to be released.
+ * ----------
+ * @return specific PN532 error code.
+ * ----------
+ * @brief  to release the target(s).
+ * ----------
+ * @note   details in user manual section 7.3.11 InRelease.
+ */
+int16_t PN532_inRelease(const uint8_t relevant_target) {
+    
+    packet_buffer[0] = PN532_COMMAND_INRELEASE;
+    packet_buffer[1] = relevant_target;              // 0 inidicates all targets
+    
+    if (!writeCommand(packet_buffer, 2)) return 0;   // return 0 for error
+    
+    return readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K);
+}
+
+/**
+ * PN532_tgInitAsTarget
+ * ----------
+ * @param  cmd         command to be sent.
+ * @param  cmd_length  length of whole command.
+ * @param  wait_time   wait time for PN532 to respond to this particular command.
+ * ----------
+ * @return specific PN532 error code.
+ * ----------
+ * @brief  to configure the PN532 as target.
+ * ----------
+ * @note   details in user manual section 7.3.14 TgInitAsTarget.
+ */
+int8_t PN532_tgInitAsTarget(uint8_t* cmd, uint8_t cmd_length, uint16_t wait_time) {
+    /*-- write command and read response --*/
+    if (!writeCommand(cmd, cmd_length)) return 0;   // return 0 for error
+    return readResponse(                            // return 0 or less for error
+                        packet_buffer,
+                        sizeof(packet_buffer),
+                        PN532_WAITTIME_30K
+                        ) > 0;
+}
+
+/**
+ * PN532_tgGetData
+ * ----------
+ * @param  data_buff    Container to obtain data.
+ * @param  buff_length  Length of data to be obtained.
+ * ----------
+ * @return specific PN532 error code.
+ * ----------
+ * @brief  This command is used in case of the PN532 configured as target for Data Exchange Protocol (DEP)
+ *         or for ISO/IEC14443-4 protocol when PN532 is activated in ISO/IEC14443-4 PICC emulated.
+ * ----------
+ * @note   details in user manual section 7.3.16 TgGetData.
+ */
+int16_t PN532_tgGetData(uint8_t *data_buff, uint8_t buff_length) {
+    
+    packet_buffer[0] = PN532_COMMAND_TGGETDATA;
+    
+    if (!writeCommand(packet_buffer, 1)) return 0;   // return 0 for error
+
+    uint16_t response_status = readResponse (
+                                             data_buff,
+                                             buff_length + 1, // must + 1, to ignore status byte
+                                             PN532_WAITTIME_3K
+                                             );
+    if ( response_status <= 0 ) return 0;                  // would return length of the data if no error
+    uint16_t data_length = response_status - 1;
+    
+    if ( data_buff[0] != 0 ) return -1;                    // return status not right from PN532
+    for (uint8_t i = 0; i < data_length; i++) {
+        data_buff[i] = data_buff[i + 1];                   // move over the data
+    }
+    return data_length;
+}
+
+/**
+ * PN532_tgSetData
+ * ----------
+ * @param  data    Container for data to be sent.
+ * @param  length  Length of data to be sent.
+ * ----------
+ * @return 0 for error, 1 for success.
+ * ----------
+ * @brief  This command is used in case of the PN532 configured as target for Data Exchange Protocol (DEP)
+ *         or for ISO/IEC14443-4 protocol when PN532 is activated in ISO/IEC14443-4 PICC emulated.
+ * ----------
+ * @note   details in user manual section 7.3.17 TgSetData.
+ */
+uint8_t PN532_tgSetData(const uint8_t* data, uint8_t length) {
+    
+    if (length > (sizeof(packet_buffer) - 1)) {
+        return 0;
+    } else {
+        packet_buffer[0] = PN532_COMMAND_TGSETDATA;
+        for (int8_t i = length - 1; i >= 0; i--){
+            packet_buffer[i + 1] = data[i];
+        }
+        if (!writeCommand(packet_buffer, length + 1))
+            return 0;           // return 0 for error
+    }
+    
+    if (readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K) < 0)
+        return 0;               // read response return negative is error
+    
+    if (0 != packet_buffer[0])  // status return non zero is error
+        return 0;
+    
+    return 1;
+}
+
 
 /**
  * setPassiveActivationRetries
@@ -258,7 +418,7 @@ uint8_t mifareClassic_authenticateBlock (
                                          uint32_t blockNumber,
                                          uint8_t keyNumber,
                                          uint8_t *keyData
-                                        ) {
+                                         ) {
     /* prepare the authentication command */
     packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;   // data exchange command
     packet_buffer[1] = 1;                              // max card numbers
@@ -272,9 +432,9 @@ uint8_t mifareClassic_authenticateBlock (
     /*-- write command and read response --*/
     if (!writeCommand(packet_buffer, 10 + uidLen)) return 0;
     readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K);
-
+    
     if (packet_buffer[0] != 0x00) return 0;            // this is the status byte, 0x00 means success
-
+    
     return 1;
 }
 
@@ -291,21 +451,21 @@ uint8_t mifareClassic_authenticateBlock (
  * Data Sheet: section 7.3.8 InDataExchange (page 127).
  */
 uint8_t mifareClassic_readDataBlock (uint8_t blockNumber, uint8_t *data) {
-
+    
     /*-- prepare the command --*/
     packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
     packet_buffer[1] = 1;                              // card number
     packet_buffer[2] = MIFARE_CMD_READ;                // Mifare read command
     packet_buffer[3] = blockNumber;                    // block number (0..63 for 1K, 0..255 for 4K) */
-
+    
     /*-- write command and read response --*/
     if (!writeCommand(packet_buffer, 4)) return 0;
     readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K);
-
+    
     if (packet_buffer[0] != 0x00) return 0;            // this is the status byte, 0x00 means success
-
+    
     memcpy (data, packet_buffer + 1, 16);              // copy the 16 data bytes to the buffer
-
+    
     return 1;
 }
 
@@ -352,7 +512,7 @@ uint8_t mifareClassic_formatNDEF (void) {
     if (!(mifareClassic_writeDataBlock (2, sectorbuffer2))) return 0;   // write block 2
     // Note sectorbuffer3[0..5] 0xA0 0xA1 0xA2 0xA3 0xA4 0xA5 must be used for key A for the MAD sector in NDEF records (sector 0)
     if (!(mifareClassic_writeDataBlock (3, sectorbuffer3))) return 0;   // write block 3: key A and access rights
-
+    
     return 1;
 }
 
@@ -449,7 +609,7 @@ uint8_t mifareUltralight_readPage (uint8_t page, uint8_t *buffer) {
     if (packet_buffer[0] == 0x00)
         memcpy (buffer, packet_buffer + 1, 4);         // read a page
     else return 0;                                     // status isn't 0x00, error
-
+    
     return 1;
 }
 
@@ -470,7 +630,7 @@ uint8_t mifareUltralight_writePage (uint8_t page, uint8_t *buffer) {
     packet_buffer[2] = MIFARE_CMD_WRITE_ULTRALIGHT;    // Mifare Ultralight write command
     packet_buffer[3] = page;                           // page Number (0..63)
     memcpy (packet_buffer + 4, buffer, 4);             // Data Payload
-
+    
     /*-- write command and read response --*/
     if (!writeCommand(packet_buffer, 8)) return 0;
     return readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K) > 0;
@@ -479,205 +639,98 @@ uint8_t mifareUltralight_writePage (uint8_t page, uint8_t *buffer) {
 
 /****************************************************
  *                                                  *
- *                 PN532 as Target                  *
+ *                  P2P Functions                   *
  *                                                  *
  ****************************************************/
+/**
+ * P2PInitiatorInit
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error.
+ * ----------
+ * @brief Initiate a PN532 as a P2P initiator.
+ */
+uint8_t P2PInitiatorInit (void) {
+    return PN532_inJumpForDEP();
+}
 
-///**************************************************************************/
-///*!
-// @brief  Exchanges an APDU with the currently inlisted peer
-//
-// @param  send            Pointer to data to send
-// @param  sendLength      Length of the data to send
-// @param  response        Pointer to response data
-// @param  responseLength  Pointer to the response data length
-// */
-///**************************************************************************/
-//bool inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
-//{
-//    uint8_t i;
-//
-//    pn532_packetbuffer[0] = 0x40; // PN532_COMMAND_INDATAEXCHANGE;
-//    pn532_packetbuffer[1] = inListedTag;
-//
-//    if (HAL(writeCommand)(pn532_packetbuffer, 2, send, sendLength)) {
-//        return false;
-//    }
-//
-//    int16_t status = HAL(readResponse)(response, *responseLength, 1000);
-//    if (status < 0) {
-//        return false;
-//    }
-//
-//    if ((response[0] & 0x3f) != 0) {
-//        DMSG("Status code indicates an error\n");
-//        return false;
-//    }
-//
-//    uint8_t length = status;
-//    length -= 1;
-//
-//    if (length > *responseLength) {
-//        length = *responseLength; // silent truncation...
-//    }
-//
-//    for (uint8_t i = 0; i < length; i++) {
-//        response[i] = response[i + 1];
-//    }
-//    *responseLength = length;
-//
-//    return true;
-//}
-//
-///**************************************************************************/
-///*!
-// @brief  'InLists' a passive target. PN532 acting as reader/initiator,
-// peer acting as card/responder.
-// */
-///**************************************************************************/
-//bool inListPassiveTarget()
-//{
-//    pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
-//    pn532_packetbuffer[1] = 1;
-//    pn532_packetbuffer[2] = 0;
-//
-//    DMSG("inList passive target\n");
-//
-//    if (HAL(writeCommand)(pn532_packetbuffer, 3)) {
-//        return false;
-//    }
-//
-//    int16_t status = HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), 30000);
-//    if (status < 0) {
-//        return false;
-//    }
-//
-//    if (pn532_packetbuffer[0] != 1) {
-//        return false;
-//    }
-//
-//    inListedTag = pn532_packetbuffer[1];
-//
-//    return true;
-//}
+/**
+ * P2PInitiatorTxRx
+ * ----------
+ * @param  tx_buff          Buffer for data to be transfered.
+ * @param  tx_buff_length   Length of bytes for data to be transfered.
+ * @param  rx_buff          Buffer for data to be recieved.
+ * ----------
+ * @return 0 for error or length of data obtained if everything goes properly.
+ * ----------
+ * @brief  Let Initiator exchange data with a target.
+ */
+uint8_t P2PInitiatorTxRx (uint8_t* tx_buff, uint8_t tx_buff_length, uint8_t* rx_buff) {
+    
+    packet_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    packet_buffer[1] = 1;
+    
+    memcpy(packet_buffer + 2, tx_buff, tx_buff_length);
+    
+    /*-- write command and read response --*/
+    if (!writeCommand(packet_buffer, tx_buff_length + 2)) return 0;
+    // data sent
+    
+    // read response from PN532, return 0 for error
+    int LEN = readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K);
+    // if LEN is nefgative, we got error code
+    if (LEN < 0) return 0;
+    
+    // check status byte
+    if (packet_buffer[0]) return 0;
+    
+    /*-- return read data --*/
+    memcpy(rx_buff, packet_buffer + 1, LEN - 1);
+    return LEN - 1;
+}
 
+/**
+ * P2PTargetInit
+ * ----------
+ * @return 1 if everything executed properly, 0 for an error.
+ * ----------
+ * @brief Initiate a PN532 as a P2P Target.
+ */
+uint8_t P2PTargetInit () {
+    
+    uint8_t cmd[] = {
+        PN532_COMMAND_TGINITASTARGET,
+        0x00,                                                        // Mode
+        0x04, 0x00,                                                  // SENS_RES, Mifare S50 (1k)
+        0x12, 0x34, 0x56,                                            // NFCID1
+        0x40,                                                        // SEL_RES, DEP only mode
+        0x01, 0xFE, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7,              // NFCID2t
+        0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,              // PAD
+        0xFF, 0xFF,                                                  // System Code
+        0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11,  // NFCID3t
+        0x00,                                                        // LEN Gt, number of general bytes
+        0x00                                                         // LEN Tk, number of historical bytes
+    };
+    
+    return PN532_tgInitAsTarget(cmd, sizeof(cmd), 0); 
+}
 
-
-
-
-
-
-//int8_t tgInitAsTarget(const uint8_t* cmd, const uint8_t cmd_length, const uint16_t wait_time){
-//    /*-- write command and read response --*/
-//    if (!writeCommand(cmd, cmd_length)) return 0;   // return 0 for error
-//    return readResponse(                            // return 0 or less for error
-//                        packet_buffer,
-//                        sizeof(packet_buffer),
-//                        PN532_WAITTIME_30K
-//                        ) > 0;
-//}
-
-//int8_t tgInitAsTarget(uint16_t wait_time) {
-//    const uint8_t cmd[] = {
-//        PN532_COMMAND_TGINITASTARGET,
-//        0,
-//        0x00, 0x00,         //SENS_RES
-//        0x00, 0x00, 0x00,   //NFCID1
-//        0x40,               //SEL_RES
-
-//        0x01, 0xFE, 0x0F, 0xBB, 0xBA, 0xA6, 0xC9, 0x89, // POL_RES
-//        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-//        0xFF, 0xFF,
-
-//        0x01, 0xFE, 0x0F, 0xBB, 0xBA, 0xA6, 0xC9, 0x89, 0x00, 0x00, //NFCID3t: Change this to desired value
-
-//        0x06, 0x46,  0x66, 0x6D, 0x01, 0x01, 0x10, 0x00// LLCP magic number and version parameter
-//    };
-//    return tgInitAsTarget(cmd, sizeof(cmd), wait_time);
-//}
-
-
-//int16_t tgGetData(uint8_t *data_buff, uint8_t buff_length) {
-//    
-//    cmd[0] = PN532_COMMAND_TGGETDATA;
-//    
-//    if (!writeCommand(data_buff, buff_length)) return 0;   // return 0 for error
-//    
-//    uint16_t response_status = readResponse (data_buff, buff_length, PN532_WAITTIME_3K);
-//    if ( response_status <= 0 ) return 0;                  // would return length of the data if no error
-//    
-//    uint16_t data_length = response_status - 1;
-//    
-//    if ( data_buff[0] != 0 ) return -5;                    // return status not right from PN532
-
-//    for (uint8_t i = 0; i < data_length; i++) {
-//        data_buff[i] = data_buff[i + 1];                   // move over the data
-//    }
-//    
-//    return length;
-//}
-
-
-
-
-
-
-
-
-
-
-//uint8_t tgSetData(const uint8_t* data, uint8_t length) {
-//    
-//    if (length > (sizeof(pn532_packetbuffer) - 1)) {
-////        if ((body != 0) || (header == pn532_packetbuffer)) {
-////            DMSG("tgSetData:buffer too small\n");
-////            return 0;
-////        }
-////
-////        pn532_packetbuffer[0] = PN532_COMMAND_TGSETDATA;
-////        if (HAL(writeCommand)(pn532_packetbuffer, 1, header, hlen)) {
-//            return 0;
-////        }
-//        
-//        
-//    } else {
-//        packet_buffer[0] = PN532_COMMAND_TGSETDATA;
-//        for (int8_t i = length - 1; i >= 0; i--){
-//            packet_buffer[i + 1] = data[i];
-//        }
-//        if (!writeCommand(packet_buffer, length + 1))
-//            return 0;           // return 0 for error
-//    }
-//    
-//    if (readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K) < 0)
-//        return 0;               // read response return negative is error
-//    
-//    if (0 != packet_buffer[0])  // status return non zero is error
-//        return 0;
-//    
-//    return 1;
-//}
-
-
-
-
-
-//int16_t inRelease(const uint8_t relevant_target){
-//    
-//    packet_buffer[0] = PN532_COMMAND_INRELEASE;
-//    packet_buffer[1] = relevant_target;              // 0 inidicates all targets
-//    
-//    if (!writeCommand(packet_buffer, 2)) return 0;   // return 0 for error
-//    
-//    return readResponse(packet_buffer, sizeof(packet_buffer), PN532_WAITTIME_1K);
-//}
-
-
-
-
-
-
-
-
-
-
+/**
+ * P2PTargetRxTx
+ * ----------
+ * @param  tx_buff          Buffer for data to be transfered.
+ * @param  tx_buff_length   Length of bytes for data to be transfered.
+ * @param  rx_buff          Buffer for data to be recieved.
+ * @param  rx_buff_length   Length of bytes for data to be recieved.
+ * ----------
+ * @return 0 for error or length of data obtained if everything goes properly.
+ * ----------
+ * @brief  Let a target exchange data with an Initiator.
+ */
+uint16_t P2PTargetRxTx (uint8_t* tx_buff, uint8_t tx_buff_length, uint8_t* rx_buff, uint8_t rx_buff_length) {
+    // get data from the initiator
+    uint16_t rx_data_length = PN532_tgGetData(rx_buff, rx_buff_length);
+    // sent data to the initiator
+    if (!PN532_tgSetData(tx_buff, tx_buff_length)) return 0;
+    // return the length of data obtained from Initiator
+    return rx_data_length;
+}

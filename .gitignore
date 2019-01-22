@@ -4,10 +4,10 @@
 *.axf
 *.htm
 *.crf
+*.o
 *.d
 *.lnp
 *.map
 *.uvopt
 *.lst
-*.o
 *.Zee\ Livermorium

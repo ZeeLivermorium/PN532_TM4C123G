@@ -1,11 +1,11 @@
 /*!
- * @file PN532_SSI.C
+ * @file  PN532_SSI.C
  * @brief SSI communication implementation for PN532.
  * ----------
  * Adapted code from Seeed Studio PN532 driver for Arduino.
  * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
  * ----------
- * NXP PN532 Data Sheet: https://www.nxp.com/docs/en/nxp/data-sheets/PN532_C1.pdf
+ * NXP PN532 Data Sheet:  https://www.nxp.com/docs/en/nxp/data-sheets/PN532_C1.pdf
  * NXP PN532 User Manual: https://www.nxp.com/docs/en/user-guide/141520.pdf
  * ----------
  * For future development and updates, please follow this repository: https://github.com/ZeeLivermorium/PN532_TM4C123
@@ -15,7 +15,7 @@
  * Much Appreciated!
  * ----------
  * @author Zee Livermorium
- * @date Apr 14, 2018
+ * @date   Apr 14, 2018
  */
 
 
@@ -57,7 +57,7 @@
  * ----------
  * Description: delay N time unit
  */
-void delay(uint32_t N) {
+static void delay(uint32_t N) {
     for(int n = 0; n < N; n++)                         // N time unitss
         for(int msec = 10000; msec > 0; msec--);       // 1 time unit
 }
