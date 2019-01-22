@@ -53,11 +53,11 @@ include ${ROOT}/common.mk
 # Where to find header files that do not live in the source directory.
 #
 IPATH += \
-	${ROOT}/lib/common/inc    \
-	${ROOT}/lib/_tm4c         \
-	${ROOT}/lib/PN532/inc     \
-	${ROOT}/lib/PICC/inc      \
-	${ROOT}/lib/NDEF/inc
+	${ROOT}/lib/common/inc              \
+	${ROOT}/lib/_tm4c                   \
+	${ROOT}/lib/NFC/PN532/PN532/inc     \
+	${ROOT}/lib/NFC/PN532/PICC/inc      \
+	${ROOT}/lib/NFC/PN532/NDEF/inc
 
 #
 # The default rule
@@ -86,11 +86,11 @@ CFLAGSgcc=-DTARGET_IS_TM4C123_RB1
 # Add lib object files you needed below
 ${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/common/src/Serial.o
 ${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/common/src/SSI.o
-${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/PN532/src/PN532.o
-${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/PN532/src/PN532_SSI.o
-${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/PICC/src/PN532_cardEmulation.o
-${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NDEF/src/NDEF_Message.o
-${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NDEF/src/NDEF_Record.o
+${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NFC/PN532/PN532/src/PN532.o
+${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NFC/PN532/PN532/src/PN532_SSI.o
+${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NFC/PN532/PICC/src/PN532_cardEmulation.o
+${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NFC/PN532/NDEF/src/NDEF_Message.o
+${BUILDPATH}/$(PROJ_NAME).axf: ${ROOT}/lib/NFC/PN532/NDEF/src/NDEF_Record.o
 
 #
 # Include the automatically generated dependency files.

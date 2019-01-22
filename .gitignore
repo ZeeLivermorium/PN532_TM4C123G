@@ -1,6 +1,7 @@
 .DS_Store
 *.dep
 *.bak
+*.bin
 *.axf
 *.htm
 *.crf

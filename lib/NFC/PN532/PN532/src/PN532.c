@@ -154,12 +154,6 @@ uint8_t PN532_inJumpForDEP() {
     packet_buffer[2] = 0x02;      // 424Kbps
     packet_buffer[3] = 0x01;      // NFCID3i
     
-//    packet_buffer[4] = 0x00;
-//    packet_buffer[5] = 0xFF;
-//    packet_buffer[6] = 0xFF;
-//    packet_buffer[7] = 0x00;
-//    packet_buffer[8] = 0x00;
-    
     if (!writeCommand(packet_buffer, 4))
         return 0;   // return 0 for error
     
