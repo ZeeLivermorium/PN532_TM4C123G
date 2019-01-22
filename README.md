@@ -8,6 +8,7 @@ This repository contains the driver software for **NXP PN532 NFC controller** on
 #### [NXP PN532 Data Sheet](https://www.nxp.com/docs/en/nxp/data-sheets/PN532_C1.pdf)
 #### [NXP PN532 User Manual](https://www.nxp.com/docs/en/user-guide/141520.pdf)
 #### [Elechouse PN532 NFC RFID Module User Guide](https://dangerousthings.com/wp-content/uploads/PN532_Manual_V3-1.pdf)
+#### [Near Field Communication Glossary](https://www.nfc-research.at/index.php@id=40.html)
 
 ## Supported PN532 Module
 ### Elechouse PN532 NFC RFID Module
@@ -24,10 +25,10 @@ Other variations of PN532 boards are not tested for now (since I dont have them)
 
 ## Installation
 ### Keil uVision 
- I include Keil uVision project file (the uvproj file in each project folder) so that if you are using ARM Keil uVision with your TM4C123G, you can just double click on the uVision project file and load to your MCU. 
+I include Keil uVision project file (the uvproj file in each project folder) so that if you are using ARM Keil uVision with your TM4C123G, you can just double click on the uVision project file and load to your MCU. 
  
- ### GCC
- Please refer to my [zEEware repo](https://github.com/zeelivermorium/zeeware) for intallation guide for running TM4C123GXL projects via GCC.
+### GCC
+Please refer to my [zEEware repo](https://github.com/zeelivermorium/zeeware) for intallation guide for running TM4C123GXL projects via GCC.
  
  ### Other Methods
  If you are not using methods above, you will need to organize all the source files by yourself.
