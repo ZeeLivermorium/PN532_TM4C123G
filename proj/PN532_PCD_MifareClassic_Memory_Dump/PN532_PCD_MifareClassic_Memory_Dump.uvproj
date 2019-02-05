@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>NDEF_Card_Emulate</TargetName>
+      <TargetName>PN532_PCD_MifareClassic_Memory_Dump</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>NDEF_Card_Emulate</OutputName>
+          <OutputName>PN532_PCD_MifareClassic_Memory_Dump</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -362,7 +362,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>rvmdk PART_TM4C123GH6PM</Define>
               <Undefine></Undefine>
-              <IncludePath>../../lib/_tm4c , ../../lib/common/inc,  ../../lib/PN532/inc,  ../../lib/NDEF/inc,  ../../lib/PICC/inc</IncludePath>
+              <IncludePath>../../lib/_tm4c , ../../lib/common/inc,  ../../lib/NFC/PN532/PN532/inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -406,14 +406,9 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
-              <FileName>SSI.c</FileName>
+              <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\SSI.c</FilePath>
-            </File>
-            <File>
-              <FileName>Serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\Serial.c</FilePath>
+              <FilePath>.\main.c</FilePath>
             </File>
             <File>
               <FileName>PLL.c</FileName>
@@ -421,44 +416,29 @@
               <FilePath>..\..\lib\common\src\PLL.c</FilePath>
             </File>
             <File>
-              <FileName>PN532.c</FileName>
+              <FileName>Serial.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\lib\PN532\src\PN532.c</FilePath>
+              <FilePath>..\..\lib\common\src\Serial.c</FilePath>
+            </File>
+            <File>
+              <FileName>SSI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\common\src\SSI.c</FilePath>
             </File>
             <File>
               <FileName>PN532_SSI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\lib\PN532\src\PN532_SSI.c</FilePath>
+              <FilePath>..\..\lib\NFC\PN532\PN532\src\PN532_SSI.c</FilePath>
+            </File>
+            <File>
+              <FileName>PN532.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\NFC\PN532\PN532\src\PN532.c</FilePath>
             </File>
             <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\lib\common\src\startup.s</FilePath>
-            </File>
-            <File>
-              <FileName>LED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\LED.c</FilePath>
-            </File>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>NDEF_Message.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\NDEF\src\NDEF_Message.c</FilePath>
-            </File>
-            <File>
-              <FileName>NDEF_Record.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\NDEF\src\NDEF_Record.c</FilePath>
-            </File>
-            <File>
-              <FileName>PN532_cardEmulation.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\PICC\src\PN532_cardEmulation.c</FilePath>
+              <FilePath>..\..\lib\_tm4c\startup.s</FilePath>
             </File>
           </Files>
         </Group>

@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>ISO14443A_Detect</TargetName>
+      <TargetName>PN532_PCD_MifareClassic_Update_NDEF</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>ISO14443A_Detect</OutputName>
+          <OutputName>PN532_PCD_MifareClassic_Update_NDEF</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -362,7 +362,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>rvmdk PART_TM4C123GH6PM</Define>
               <Undefine></Undefine>
-              <IncludePath>../../lib/common/inc,  ../../lib/PN532/inc</IncludePath>
+              <IncludePath>../../lib/_tm4c , ../../lib/common/inc,  ../../lib/NFC/PN532/PN532/inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -411,9 +411,9 @@
               <FilePath>.\main.c</FilePath>
             </File>
             <File>
-              <FileName>SSI.c</FileName>
+              <FileName>PLL.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\SSI.c</FilePath>
+              <FilePath>..\..\lib\common\src\PLL.c</FilePath>
             </File>
             <File>
               <FileName>Serial.c</FileName>
@@ -421,29 +421,24 @@
               <FilePath>..\..\lib\common\src\Serial.c</FilePath>
             </File>
             <File>
-              <FileName>PLL.c</FileName>
+              <FileName>SSI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\PLL.c</FilePath>
-            </File>
-            <File>
-              <FileName>PN532.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\PN532\src\PN532.c</FilePath>
+              <FilePath>..\..\lib\common\src\SSI.c</FilePath>
             </File>
             <File>
               <FileName>PN532_SSI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\lib\PN532\src\PN532_SSI.c</FilePath>
+              <FilePath>..\..\lib\NFC\PN532\PN532\src\PN532_SSI.c</FilePath>
+            </File>
+            <File>
+              <FileName>PN532.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\NFC\PN532\PN532\src\PN532.c</FilePath>
             </File>
             <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\lib\common\src\startup.s</FilePath>
-            </File>
-            <File>
-              <FileName>LED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\LED.c</FilePath>
+              <FilePath>..\..\lib\_tm4c\startup.s</FilePath>
             </File>
           </Files>
         </Group>

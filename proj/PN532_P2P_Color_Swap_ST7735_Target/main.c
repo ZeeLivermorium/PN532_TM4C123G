@@ -1,6 +1,6 @@
 /*!
- * @file main.c
- * @brief set PN532 as P2P Target.
+ * @file  main.c
+ * @brief set PN532 as P2P target to exchange colors on ST7735 with initiator device.
  * ----------
  * Adapted code from Seeed Studio PN532 driver for Arduino.
  * You can find the Seeed Studio PN532 driver here: https://github.com/Seeed-Studio/PN532
@@ -15,7 +15,7 @@
  * Much Appreciated!
  * ----------
  * @author Zee Livermorium
- * @date Jan 5, 2019
+ * @date   Jan 5, 2019
  */
 
 #include <stdint.h>
@@ -66,7 +66,7 @@ int main (void) {
     // fill target end to red
     ST7735_FillScreen(color[tx_buff[0]]);
 
-    PN532_SAMConfiguration();                          // configure board to read RFID tags
+    PN532_SAMConfiguration();             // configure board to read RFID tags
 
     /*-- loop --*/
     while (1) {                           // read and process
@@ -74,10 +74,9 @@ int main (void) {
             if (P2PTargetRxTx(tx_buff, 1, rx_buff, 1)) {
                 tx_buff[0] = rx_buff[0];
                 ST7735_FillScreen(color[tx_buff[0]]);
+                delay(1000);
             }
         }
     }
-
-
 }
 

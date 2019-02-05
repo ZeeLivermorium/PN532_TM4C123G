@@ -294,7 +294,12 @@ endif
 # bin and axf files at once.
 #
 ${BUILDPATH}/${PROJ_NAME}.bin:
-	@if [ ! -e ${BUILDPATH}/${PROJ_NAME}.bin ]; then make all; fi;
+	@if [ -e ${BUILDPATH} ];                    \
+	then                                        \
+		rm -rf ${BUILDPATH} ${wildcard *~};       \
+		rm *.o *.d;                               \
+	fi;                                         \
+	make all;                                   \
 
 #
 # Flash depends on the bin file

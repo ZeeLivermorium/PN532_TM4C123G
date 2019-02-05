@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>MifareClassic_Memory_Dump</TargetName>
+      <TargetName>PN532_P2P_Color_Swap_ST7735_Initiator</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>MifareClassic_Memory_Dump</OutputName>
+          <OutputName>PN532_P2P_Color_Swap_ST7735_Initiator</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -362,7 +362,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>rvmdk PART_TM4C123GH6PM</Define>
               <Undefine></Undefine>
-              <IncludePath>../../lib/common/inc,  ../../lib/PN532/inc</IncludePath>
+              <IncludePath>../../lib/_tm4c , ../../lib/common/inc,  ../../lib/NFC/PN532/PN532/inc, ../../lib/LCD/ST7735/inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -411,24 +411,9 @@
               <FilePath>.\main.c</FilePath>
             </File>
             <File>
-              <FileName>PN532.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\PN532\src\PN532.c</FilePath>
-            </File>
-            <File>
-              <FileName>PN532_SSI.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\PN532\src\PN532_SSI.c</FilePath>
-            </File>
-            <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\lib\common\src\PLL.c</FilePath>
-            </File>
-            <File>
-              <FileName>Serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\common\src\Serial.c</FilePath>
             </File>
             <File>
               <FileName>SSI.c</FileName>
@@ -436,9 +421,24 @@
               <FilePath>..\..\lib\common\src\SSI.c</FilePath>
             </File>
             <File>
+              <FileName>PN532.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\NFC\PN532\PN532\src\PN532.c</FilePath>
+            </File>
+            <File>
+              <FileName>PN532_SSI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\NFC\PN532\PN532\src\PN532_SSI.c</FilePath>
+            </File>
+            <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\lib\common\src\startup.s</FilePath>
+              <FilePath>..\..\lib\_tm4c\startup.s</FilePath>
+            </File>
+            <File>
+              <FileName>ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\LCD\ST7735\src\ST7735.c</FilePath>
             </File>
           </Files>
         </Group>
