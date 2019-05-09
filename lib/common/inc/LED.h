@@ -10,7 +10,6 @@
  */
 
 #include <stdint.h>
-#include "tm4c123gh6pm.h"          // put this in the right path accordingly
 
 void LED_Init(void);
 
@@ -18,13 +17,18 @@ void LED_RED_ON(void);
 
 void LED_RED_OFF(void);
 
+void LED_RED_TOGGLE(void);
+
 void LED_BLUE_ON(void);
 
 void LED_BLUE_OFF(void);
+
+void LED_BLUE_TOGGLE(void);
 
 void LED_GREEN_ON(void);
 
 void LED_GREEN_OFF(void);
 
+void LED_GREEN_TOGGLE(void);
 
 

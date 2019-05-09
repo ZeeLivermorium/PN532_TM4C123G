@@ -69,7 +69,7 @@
 /**
  * PN532_SSI_Init
  * ----------
- * @brief initialize SSI0 on Port A with corresponding setting parameters.
+ * @brief initialize SSI corresponding setting parameters.
  */
 void PN532_SSI_Init (void);
 
